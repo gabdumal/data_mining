@@ -1,6 +1,6 @@
-#import "packages.typ": glossarium, polylux, quati-abnt
-#import "components.typ": cover_page, page_footer, page_progress_bar, slide
-#import "style.typ": large_leading, leading, small_leading, theme_color
+#import "packages.typ": *
+#import "components.typ": *
+#import "style.typ": larger_leading, leading, small_leading, theme_color
 
 
 // ## Layout. Leiaute.
@@ -8,12 +8,12 @@
   font: "Atkinson Hyperlegible Next",
   size: leading,
 )
-#show heading: set block(below: large_leading)
+#show heading: set block(below: larger_leading)
 #set page(
   paper: "presentation-16-9",
-  margin: (bottom: large_leading, rest: leading),
+  margin: (bottom: larger_leading, rest: leading),
   footer: align(right, page_footer),
-  background: align(bottom, page_progress_bar),
+  foreground: align(bottom, page_progress_bar),
 )
 
 #cover_page
@@ -29,17 +29,6 @@
 
 ]
 
-#slide[
-  = My first slide
-
-  Here come my three favourite fonts:
-
-  + Atkinson Hyperlegible
-  + Alegreya
-  + TeX Gyre Pagella
-
-]
-
 
 #slide[
   = My first slide
@@ -53,27 +42,4 @@
 ]
 
 
-#slide[
-  = My first slide
-
-  Here come my three favourite fonts:
-
-  + Atkinson Hyperlegible
-  + Alegreya
-  + TeX Gyre Pagella
-
-  #lorem(100)
-
-]
-
-
-#slide[
-  = My first slide
-
-  Here come my three favourite fonts:
-
-  + Atkinson Hyperlegible
-  + Alegreya
-  + TeX Gyre Pagella
-
-]
+#end_page

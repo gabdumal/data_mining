@@ -1,7 +1,6 @@
 // # Components. Componentes.
 
-#import "style.typ": large_leading, small_leading, theme_color
-
+#import "data/data.typ": authors, date, subtitle, title
 #import "packages.typ": (
   polylux, polylux.slide, polylux.toolbox, quati-abnt.common.components, quati-abnt.common.components.cite_prose,
   quati-abnt.common.components.closed_discussion_note, quati-abnt.common.components.create_status_note,
@@ -10,6 +9,7 @@
   quati-abnt.common.components.format_table, quati-abnt.common.components.open_discussion_note,
   quati-abnt.common.components.progress_note, quati-abnt.common.components.todo_note,
 )
+#import "style.typ": large_leading, larger_leading, leading, small_leading, theme_color
 
 
 // ## Page. Página.
@@ -28,12 +28,45 @@
 }
 
 #let cover_page = slide[
-  #set page(footer: none, background: none)
+  #set page(
+    footer: none,
+    foreground: none,
+    margin: leading,
+  )
   #set align(horizon)
 
-  #text(large_leading)[Title of the presentation]
+  #text(fill: theme_color, weight: "bold", larger_leading, title)\
+  #text(large_leading, subtitle)
 
-  The author, the date
+  #date.display("[day]/[month]/[year]")
+
+  #(
+    authors
+      .map(author => [#(
+          (
+            author.first_name,
+            author.middle_name,
+            author.last_name,
+          )
+            .filter(name => name != none)
+            .join(" ")
+        )#footnote(text(small_leading, author.curriculum))])
+      .join(", ")
+  )
+
+]
+
+#let end_page = slide[
+  #set page(
+    footer: none,
+    foreground: none,
+    margin: leading,
+    fill: theme_color,
+  )
+  #set align(center + horizon)
+  #set text(size: 3 * leading, weight: "black", fill: white)
+
+  Agradecemos pela atenção!
 ]
 
 

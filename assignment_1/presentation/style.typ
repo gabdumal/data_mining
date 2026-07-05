@@ -1,4 +1,5 @@
 #let leading = 24pt
-#let large_leading = leading * 2
-#let small_leading = 24pt * 3 / 4
+#let larger_leading = leading * 2
+#let large_leading = leading * 6 / 4
+#let small_leading = leading * 3 / 4
 #let theme_color = red.darken(30%)
