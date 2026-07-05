@@ -33,30 +33,48 @@
     foreground: none,
     margin: leading,
   )
-  #set align(horizon)
 
-  #text(fill: theme_color, weight: "bold", larger_leading, title)\
-  #text(large_leading, subtitle)
+  #grid(
+    columns: (1fr, auto),
+    align: (left, right),
+    [
+      #text(
+        fill: theme_color,
+        weight: "bold",
+        size: larger_leading,
+        title,
+      )\
+      #text(
+        size: large_leading,
+        subtitle,
+      )
 
-  #date.display("[day]/[month]/[year]")
+      #date.display("[day]/[month]/[year]")
 
-  #(
-    authors
-      .map(author => [#(
-          (
-            author.first_name,
-            author.middle_name,
-            author.last_name,
-          )
-            .filter(name => name != none)
-            .join(" ")
-        )#footnote(text(small_leading, author.curriculum))])
-      .join(", ")
+      #(
+        authors
+          .map(author => [#(
+              (
+                author.first_name,
+                author.middle_name,
+                author.last_name,
+              )
+                .filter(name => name != none)
+                .join(" ")
+            )#footnote(text(small_leading, author.curriculum))])
+          .join(", ")
+      )
+    ],
+    [
+      #image(
+        "/assets/images/brasao_ufjf.png",
+        width: 5cm,
+      )
+    ],
   )
-
 ]
 
-#let end_page = slide[
+#let focus_page = it => slide[
   #set page(
     footer: none,
     foreground: none,
@@ -64,9 +82,13 @@
     fill: theme_color,
   )
   #set align(center + horizon)
-  #set text(size: 3 * leading, weight: "black", fill: white)
+  #set text(
+    size: larger_leading,
+    weight: "black",
+    fill: white,
+  )
 
-  Agradecemos pela atenção!
+  #it
 ]
 
 

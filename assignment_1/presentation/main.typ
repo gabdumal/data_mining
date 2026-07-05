@@ -16,6 +16,7 @@
   foreground: align(bottom, page_progress_bar),
 )
 
+
 #cover_page
 
 #slide[
@@ -42,4 +43,10 @@
 ]
 
 
-#end_page
+#focus_page[
+  Agradecemos pela atenção!
+
+  #text(leading)[
+    Este trabalho recebeu apoio da Fundação de Amparo à Pesquisa do Estado de Minas Gerais (FAPEMIG).
+  ]
+]
