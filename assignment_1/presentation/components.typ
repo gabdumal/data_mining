@@ -2,23 +2,26 @@
 
 #import "data/data.typ": authors, date, subtitle, title
 #import "packages.typ": (
-  polylux, polylux.slide, polylux.toolbox, quati-abnt.common.components, quati-abnt.common.components.cite_prose,
-  quati-abnt.common.components.closed_discussion_note, quati-abnt.common.components.create_status_note,
-  quati-abnt.common.components.describe_figure, quati-abnt.common.components.done_note,
-  quati-abnt.common.components.editor_note, quati-abnt.common.components.equation,
-  quati-abnt.common.components.format_table, quati-abnt.common.components.open_discussion_note,
-  quati-abnt.common.components.progress_note, quati-abnt.common.components.todo_note,
+  polylux.alternatives, polylux.alternatives-cases, polylux.alternatives-fn, polylux.alternatives-match,
+  polylux.enable-handout-mode, polylux.item-by-item, polylux.later, polylux.one-by-one, polylux.only,
+  polylux.reveal-code, polylux.slide, polylux.toolbox, polylux.uncover, quati-abnt.common.components,
+  quati-abnt.common.components.cite_prose, quati-abnt.common.components.closed_discussion_note,
+  quati-abnt.common.components.create_status_note, quati-abnt.common.components.describe_figure,
+  quati-abnt.common.components.done_note, quati-abnt.common.components.editor_note,
+  quati-abnt.common.components.equation, quati-abnt.common.components.format_table,
+  quati-abnt.common.components.open_discussion_note, quati-abnt.common.components.progress_note,
+  quati-abnt.common.components.todo_note,
 )
 #import "style.typ": large_leading, larger_leading, leading, small_leading, theme_color
 
 
 // ## Page. Página.
 
-#let page_footer = text(size: small_leading)[#polylux.toolbox.slide-number / #polylux.toolbox.last-slide-number]
+#let page_footer = text(size: small_leading)[#toolbox.slide-number / #toolbox.last-slide-number]
 
 #let page_progress_bar = {
   let height = 4pt
-  polylux.toolbox.progress-ratio(ratio => {
+  toolbox.progress-ratio(ratio => {
     stack(
       dir: ltr,
       rect(stroke: none, fill: theme_color, height: height, width: ratio * 100%),
@@ -27,8 +30,9 @@
   })
 }
 
-#let cover_page = slide[
+#let cover_slide = slide[
   #set page(
+    header: none,
     footer: none,
     foreground: none,
     margin: leading,
@@ -74,8 +78,9 @@
   )
 ]
 
-#let focus_page = it => slide[
+#let focus_slide = it => slide[
   #set page(
+    header: none,
     footer: none,
     foreground: none,
     margin: leading,
@@ -83,9 +88,14 @@
   )
   #set align(center + horizon)
   #set text(
-    size: larger_leading,
-    weight: "black",
     fill: white,
+    weight: "black",
+    size: larger_leading,
+  )
+  #show heading.where(
+    level: 1,
+  ): set text(
+    size: larger_leading,
   )
 
   #it

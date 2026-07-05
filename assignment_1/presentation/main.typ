@@ -11,39 +11,56 @@
 #show heading: set block(below: larger_leading)
 #set page(
   paper: "presentation-16-9",
-  margin: (bottom: larger_leading, rest: leading),
+  margin: (y: larger_leading, x: leading),
   footer: align(right, page_footer),
   foreground: align(bottom, page_progress_bar),
+  header: align(right, text(weight: "semibold", fill: theme_color)[#toolbox.current-section]),
 )
 
 
-#cover_page
+#cover_slide
 
+#toolbox.register-section("Regras de associação")
+#focus_slide([
+  = #toolbox.current-section
+])
 #slide[
-  = My first slide
-
-  Here come my three favourite fonts:
-
-  + Atkinson Hyperlegible
-  + Alegreya
-  + TeX Gyre Pagella
+  == Banana
 
 ]
 
-
+#toolbox.register-section("Agrupamento")
+#focus_slide([
+  = #toolbox.current-section
+])
 #slide[
-  = My first slide
-
-  Here come my three favourite fonts:
-
-  + Atkinson Hyperlegible
-  + Alegreya
-  + TeX Gyre Pagella
+  = Banana
 
 ]
 
+#toolbox.register-section("Regressão")
+#focus_slide([
+  = #toolbox.current-section
+])
+#slide[
+  = Banana
 
-#focus_page[
+]
+
+#toolbox.register-section("Classificação")
+#focus_slide([
+  = #toolbox.current-section
+])
+#slide[
+  = Banana
+
+]
+
+#focus_slide[
+  #set text(
+    size: larger_leading,
+  )
+
   Agradecemos pela atenção!
 
   #text(leading)[

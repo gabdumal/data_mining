@@ -34,7 +34,7 @@
 // Date — required.
 // Data — obrigatório.
 #let date = datetime(
-  day: 07,
+  day: 08,
   month: 07,
   year: 2026,
 )
