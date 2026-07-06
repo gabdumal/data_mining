@@ -4,31 +4,18 @@
 #import "packages.typ": (
   polylux.alternatives, polylux.alternatives-cases, polylux.alternatives-fn, polylux.alternatives-match,
   polylux.enable-handout-mode, polylux.item-by-item, polylux.later, polylux.one-by-one, polylux.only,
-  polylux.reveal-code, polylux.slide, polylux.toolbox, polylux.uncover, quati-abnt.common.components,
-  quati-abnt.common.components.cite_prose, quati-abnt.common.components.closed_discussion_note,
-  quati-abnt.common.components.create_status_note, quati-abnt.common.components.describe_figure,
-  quati-abnt.common.components.done_note, quati-abnt.common.components.editor_note,
-  quati-abnt.common.components.equation, quati-abnt.common.components.format_table,
-  quati-abnt.common.components.open_discussion_note, quati-abnt.common.components.progress_note,
-  quati-abnt.common.components.todo_note,
+  polylux.reveal-code, polylux.slide, polylux.toolbox, polylux.uncover, quati-abnt.article,
+  quati-abnt.common.components, quati-abnt.common.components.cite_prose,
+  quati-abnt.common.components.closed_discussion_note, quati-abnt.common.components.create_status_note,
+  quati-abnt.common.components.describe_figure, quati-abnt.common.components.done_note,
+  quati-abnt.common.components.editor_note, quati-abnt.common.components.equation,
+  quati-abnt.common.components.format_table, quati-abnt.common.components.open_discussion_note,
+  quati-abnt.common.components.progress_note, quati-abnt.common.components.todo_note,
 )
 #import "style.typ": large_leading, larger_leading, leading, small_leading, theme_color
 
 
 // ## Page. Página.
-
-#let page_footer = text(size: small_leading)[#toolbox.slide-number / #toolbox.last-slide-number]
-
-#let page_progress_bar = {
-  let height = 4pt
-  toolbox.progress-ratio(ratio => {
-    stack(
-      dir: ltr,
-      rect(stroke: none, fill: theme_color, height: height, width: ratio * 100%),
-      rect(stroke: none, fill: none, height: height, width: (1 - ratio) * 100%),
-    )
-  })
-}
 
 #let cover_slide = slide[
   #set page(
@@ -42,15 +29,27 @@
     columns: (1fr, auto),
     align: (left, right),
     [
-      #text(
-        fill: theme_color,
-        weight: "bold",
-        size: larger_leading,
-        title,
-      )\
-      #text(
-        size: large_leading,
-        subtitle,
+      #grid(
+        columns: 1,
+        rows: 2,
+        row-gutter: leading,
+        [
+          #text(
+            fill: theme_color,
+            weight: "bold",
+            heading(
+              text(
+                size: larger_leading,
+                title,
+              ),
+            ),
+          )],
+        [
+          #text(
+            size: large_leading,
+            subtitle,
+          )
+        ],
       )
 
       #date.display("[day]/[month]/[year]")
@@ -92,13 +91,18 @@
     weight: "black",
     size: larger_leading,
   )
-  #show heading.where(
-    level: 1,
-  ): set text(
+  #it
+]
+
+#let title_slide = title => focus_slide[
+  #show heading.where(level: 1): set text(
+    weight: "black",
     size: larger_leading,
   )
-
-  #it
+  #heading(
+    level: 1,
+    title,
+  )
 ]
 
 

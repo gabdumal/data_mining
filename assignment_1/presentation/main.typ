@@ -1,58 +1,35 @@
 #import "packages.typ": *
 #import "components.typ": *
-#import "style.typ": larger_leading, leading, small_leading, theme_color
+#import "template.typ": *
 
 
 // ## Layout. Leiaute.
-#set text(
-  font: "Atkinson Hyperlegible Next",
-  size: leading,
-)
-#show heading: set block(below: larger_leading)
-#set page(
-  paper: "presentation-16-9",
-  margin: (y: larger_leading, x: leading),
-  footer: align(right, page_footer),
-  foreground: align(bottom, page_progress_bar),
-  header: align(right, text(weight: "semibold", fill: theme_color)[#toolbox.current-section]),
-)
-
+#show: it => template(it)
 
 #cover_slide
 
-#toolbox.register-section("Regras de associação")
-#focus_slide([
-  = #toolbox.current-section
-])
+#title_slide("Regras de associação")
+
 #slide[
   == Banana
 
 ]
 
-#toolbox.register-section("Agrupamento")
-#focus_slide([
-  = #toolbox.current-section
-])
+#title_slide("Agrupamento")
 #slide[
-  = Banana
+  == Banana
 
 ]
 
-#toolbox.register-section("Regressão")
-#focus_slide([
-  = #toolbox.current-section
-])
+#title_slide("Regressão")
 #slide[
-  = Banana
+  == Banana
 
 ]
 
-#toolbox.register-section("Classificação")
-#focus_slide([
-  = #toolbox.current-section
-])
+#title_slide("Classificação")
 #slide[
-  = Banana
+  == Banana
 
 ]
 
