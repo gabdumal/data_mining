@@ -12,7 +12,7 @@
   quati-abnt.common.components.format_table, quati-abnt.common.components.open_discussion_note,
   quati-abnt.common.components.progress_note, quati-abnt.common.components.todo_note,
 )
-#import "style.typ": large_leading, larger_leading, leading, small_leading, theme_color
+#import "style/style.typ": large_leading, larger_leading, leading, small_leading, theme_color
 
 
 // ## Page. Página.

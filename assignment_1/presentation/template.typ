@@ -1,6 +1,6 @@
 #import "components.typ": toolbox
 #import "packages.typ": hydra
-#import "style.typ": larger_leading, leading, small_leading, theme_color
+#import "style/style.typ": larger_leading, leading, small_leading, theme_color
 
 #let page_footer = text(size: small_leading)[#toolbox.slide-number / #toolbox.last-slide-number]
 

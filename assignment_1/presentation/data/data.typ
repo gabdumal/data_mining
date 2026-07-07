@@ -5,13 +5,13 @@
 // Title — required.
 // Título — obrigatório.
 #let title = {
-  [Guia de redação]
+  [Mineração de dados]
 }
 
 // Subtitle — optional.
 // Subtítulo — opcional.
 #let subtitle = {
-  [artigo científico]
+  [tipos de problemas]
 }
 
 

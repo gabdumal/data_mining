@@ -6,10 +6,53 @@
 // ## Layout. Leiaute.
 #show: it => template(it)
 
+#let color_of_links = theme_color
+
+// ## Links. Ligações.
+#show link: it => {
+  // TODO: use if type(it.dest) != label
+  if (color_of_links != none) {
+    set text(fill: color_of_links)
+    it
+  } else {
+    it
+  }
+}
+
+// ## Citations. Citações.
+#show cite: it => {
+  if (color_of_links != none) {
+    set text(fill: color_of_links)
+    it
+  } else {
+    it
+  }
+}
+
+// ## References. Referências.
+#show ref: it => {
+  // NBR 6024:2012.
+  let content = if (color_of_links != none) {
+    set text(fill: color_of_links)
+    it
+  } else {
+    it
+  }
+
+  content
+}
+
 #cover_slide
 
-#title_slide("Regras de associação")
+#title_slide("Classificação")
+#slide[
+  == Age group prediction with panoramic radiomorphometric parameters using machine learning algorithms
 
+  @lee:2022:age_group_classification
+
+]
+
+#title_slide("Regras de associação")
 #slide[
   == Banana
 
@@ -27,12 +70,6 @@
 
 ]
 
-#title_slide("Classificação")
-#slide[
-  == Banana
-
-]
-
 #focus_slide[
   #set text(
     size: larger_leading,
@@ -44,3 +81,9 @@
     Este trabalho recebeu apoio da Fundação de Amparo à Pesquisa do Estado de Minas Gerais (FAPEMIG).
   ]
 ]
+
+#bibliography(
+  "data/bibliography.bib",
+  title: "Referências",
+  style: "style/bibliography_style.csl",
+)
