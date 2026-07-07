@@ -44,31 +44,7 @@
 
 #cover_slide
 
-#title_slide("Classificação")
-#slide[
-  == Age group prediction with panoramic radiomorphometric parameters using machine learning algorithms
-
-  @lee:2022:age_group_classification
-
-]
-
-#title_slide("Regras de associação")
-#slide[
-  == Banana
-
-]
-
-#title_slide("Agrupamento")
-#slide[
-  == Banana
-
-]
-
-#title_slide("Regressão")
-#slide[
-  == Banana
-
-]
+#include "content/main.typ"
 
 #focus_slide[
   #set text(
