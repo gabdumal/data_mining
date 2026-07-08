@@ -124,13 +124,15 @@
   #colbreak()
   #stress[Resultados]
 
-  O modelo identificou *quatro grupos* clinicamente distintos, semelhantes aos encontrados em estudos anteriores:
-  - pacientes predominantemente *cardiovasculares*;
-  - pacientes com insuficiência *respiratória*;
-  - pacientes com sepse e disfunção *múltipla* de órgãos;
-  - pacientes com *menor* gravidade clínica.
+  O modelo identificou *seis grupos* clinicamente distintos, semelhantes aos encontrados em estudos anteriores:
+  1. Insuficiência renal
+  + Trauma e neurologia
+  + Choque cardiovascular e hemorragia
+  + Doenças cardiovasculares e respiratórias crônicas
+  + Infecção
+  + Falência grave de múltiplos órgãos.
 
-  Os agrupamentos também puderam ser *reproduzidos* na base de validação (MUMC+), indicando boa capacidade de generalização.
+  Os agrupamentos também puderam ser *reproduzidos* na base de validação, indicando boa capacidade de generalização.
 
 ]
 
