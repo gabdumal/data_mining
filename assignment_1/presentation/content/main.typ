@@ -97,11 +97,40 @@
 
 #title_slide("Agrupamento")
 #slide[
-  == Deep embedded clustering generalisability and adaptation for integrating mixed datatypes: two critical care cohorts
-
-  Texto #cite_prose(<kok:2024:icu_clustering>)#footnote[
+  == Deep embedded clustering generalisability and adaptation for integrating mixed datatypes: two critical care cohorts#footnote[
     #cite(<kok:2024:icu_clustering>, form: "full")
   ]
+
+  #stress[Objetivo:] identificar *grupos* de pacientes em *UTI* com características clínicas *semelhantes*, sem utilizar rótulos previamente definidos.
+
+  #colbreak()
+  #stress[Base de dados: ] o estudo comparou duas bases de dados: uma para o desenvolvimento e outra para validação.
+
+  - *SICS:* coorte prospectiva do University Medical Center Groningen (Países Baixos) --- *787* internações.
+  - *MUMC+:* base retrospectiva de *3.894* internações (filtradas de 6.328) admitidas no Maastricht University Medical Centre+ (Países Baixos) entre 09/07/2012 e 14/03/2020.
+
+  #colbreak()
+  #stress[Variáveis de entrada: ] foram elencadas *80* variáveis, representadas de forma *binária*. Destacam-se:
+  - Idade
+  - Sexo
+  - Exames laboratoriais (23 medidas, representadas pela média e desvio padrão durante a internação)
+  - Frequência cardíaca
+  - Pressão arterial
+  - Temperatura
+  - Ventilação mecânica (definida constante quando não usada)
+  - Pressão venosa central (medição invasiva ou por indicador)
+  - Tipo de admissão
+
+  #colbreak()
+  #stress[Resultados]
+
+  O modelo identificou *quatro grupos* clinicamente distintos, semelhantes aos encontrados em estudos anteriores:
+  - pacientes predominantemente *cardiovasculares*;
+  - pacientes com insuficiência *respiratória*;
+  - pacientes com sepse e disfunção *múltipla* de órgãos;
+  - pacientes com *menor* gravidade clínica.
+
+  Os agrupamentos também puderam ser *reproduzidos* na base de validação (MUMC+), indicando boa capacidade de generalização.
 
 ]
 
