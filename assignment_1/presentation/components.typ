@@ -5,12 +5,11 @@
   polylux.alternatives, polylux.alternatives-cases, polylux.alternatives-fn, polylux.alternatives-match,
   polylux.enable-handout-mode, polylux.item-by-item, polylux.later, polylux.one-by-one, polylux.only,
   polylux.reveal-code, polylux.slide, polylux.toolbox, polylux.uncover, quati-abnt.article,
-  quati-abnt.common.components, quati-abnt.common.components.cite_prose,
-  quati-abnt.common.components.closed_discussion_note, quati-abnt.common.components.create_status_note,
-  quati-abnt.common.components.describe_figure, quati-abnt.common.components.done_note,
-  quati-abnt.common.components.editor_note, quati-abnt.common.components.equation,
-  quati-abnt.common.components.format_table, quati-abnt.common.components.open_discussion_note,
-  quati-abnt.common.components.progress_note, quati-abnt.common.components.todo_note,
+  quati-abnt.bibliography.cite_prose, quati-abnt.common.components, quati-abnt.common.components.describe_figure,
+  quati-abnt.common.components.equation, quati-abnt.common.components.format_table,
+  quati-abnt.note.closed_discussion_note, quati-abnt.note.create_status_note, quati-abnt.note.done_note,
+  quati-abnt.note.editor_note, quati-abnt.note.open_discussion_note, quati-abnt.note.progress_note,
+  quati-abnt.note.todo_note,
 )
 #import "style/style.typ": large_leading, larger_leading, leading, small_leading, theme_color
 
@@ -18,6 +17,8 @@
 // ## Page. Página.
 
 #let cover_slide = slide[
+  #counter(footnote).update(0)
+
   #set page(
     header: none,
     footer: none,
@@ -70,11 +71,13 @@
     ],
     [
       #image(
-        "/assets/images/brasao_ufjf.png",
+        "assets/images/brasao_ufjf.png",
         width: 5cm,
       )
     ],
   )
+
+  #counter(footnote).update(0)
 ]
 
 #let focus_slide = it => slide[

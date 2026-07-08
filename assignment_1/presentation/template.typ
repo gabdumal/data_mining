@@ -17,9 +17,12 @@
 
 #let template = it => {
   set text(
+    lang: "pt",
+    region: "br",
     font: "Atkinson Hyperlegible Next",
     size: leading,
   )
+
   show heading: set block(below: larger_leading)
   set page(
     paper: "presentation-16-9",

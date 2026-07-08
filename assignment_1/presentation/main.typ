@@ -5,46 +5,27 @@
 
 // ## Layout. Leiaute.
 #show: it => template(it)
+#show: it => quati-abnt.link.template(
+  it,
+  // Define the color of links and cross-references.
+  // Defina a cor dos links e das referências cruzadas.
+  color_of_links: theme_color,
+)
+#show: it => quati-abnt.bibliography.template(it)
+#show: it => quati-abnt.footnote.template(it)
 
-#let color_of_links = theme_color
 
-// ## Links. Ligações.
-#show link: it => {
-  // TODO: use if type(it.dest) != label
-  if (color_of_links != none) {
-    set text(fill: color_of_links)
-    it
-  } else {
-    it
-  }
-}
-
-// ## Citations. Citações.
-#show cite: it => {
-  if (color_of_links != none) {
-    set text(fill: color_of_links)
-    it
-  } else {
-    it
-  }
-}
-
-// ## References. Referências.
-#show ref: it => {
-  // NBR 6024:2012.
-  let content = if (color_of_links != none) {
-    set text(fill: color_of_links)
-    it
-  } else {
-    it
-  }
-
-  content
-}
+// ## Content. Conteúdo.
 
 #cover_slide
 
 #include "content/main.typ"
+
+#title_slide("Referências")
+#bibliography(
+  title: none,
+  "data/bibliography.bib",
+)
 
 #focus_slide[
   #set text(
@@ -57,9 +38,3 @@
     Este trabalho recebeu apoio da Fundação de Amparo à Pesquisa do Estado de Minas Gerais (FAPEMIG).
   ]
 ]
-
-#bibliography(
-  "data/bibliography.bib",
-  title: "Referências",
-  style: "style/bibliography_style.csl",
-)

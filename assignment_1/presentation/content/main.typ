@@ -7,7 +7,9 @@
 #slide[
   == Age group prediction with panoramic radiomorphometric parameters using machine learning algorithms
 
-  @lee:2022:age_group_classification
+  Texto #cite_prose(<lee:2022:age_group_classification>)#footnote[
+    #cite(<lee:2022:age_group_classification>, form: "full")
+  ]
 
 ]
 
@@ -15,7 +17,9 @@
 #slide[
   == Multi-step ahead predictive model for blood glucose concentrations of type-1 diabetic patients
 
-  @zaidi:2021:glucose_regression
+  Texto #cite_prose(<zaidi:2021:glucose_regression>)#footnote[
+    #cite(<zaidi:2021:glucose_regression>, form: "full")
+  ]
 
 ]
 
@@ -23,7 +27,9 @@
 #slide[
   == Deep embedded clustering generalisability and adaptation for integrating mixed datatypes: two critical care cohorts
 
-  @kok:2024:icu_clustering
+  Texto #cite_prose(<kok:2024:icu_clustering>)#footnote[
+    #cite(<kok:2024:icu_clustering>, form: "full")
+  ]
 
 ]
 
@@ -32,6 +38,8 @@
 
   == Enhancing Retail Transactions: A Data-Driven Recommendation Using Modified RFM Analysis and Association Rules Mining
 
-  @chen:2023:retail_association_rules
+  Texto #cite_prose(<chen:2023:retail_association_rules>)#footnote[
+    #cite(<chen:2023:retail_association_rules>, form: "full")
+  ]
 
 ]
