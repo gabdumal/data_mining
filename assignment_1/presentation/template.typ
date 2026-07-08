@@ -2,17 +2,26 @@
 #import "packages.typ": hydra
 #import "style/style.typ": larger_leading, leading, small_leading, theme_color
 
-#let page_footer = text(size: small_leading)[#toolbox.slide-number / #toolbox.last-slide-number]
+#let page_footer = context {
+  set text(
+    size: small_leading,
+  )
+  counter(page).display(
+    "1 / 1",
+    both: true,
+  )
+}
 
-#let page_progress_bar = {
+#let page_progress_bar = context {
   let height = 4pt
-  toolbox.progress-ratio(ratio => {
+  let ratio = counter(page).get().first() / counter(page).final().first()
+  {
     stack(
       dir: ltr,
       rect(stroke: none, fill: theme_color, height: height, width: ratio * 100%),
       rect(stroke: none, fill: none, height: height, width: (1 - ratio) * 100%),
     )
-  })
+  }
 }
 
 #let template = it => {

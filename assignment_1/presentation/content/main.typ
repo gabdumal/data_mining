@@ -139,10 +139,9 @@
 #title_slide("Regras de associação")
 #slide[
 
-  == Enhancing Retail Transactions: A Data-Driven Recommendation Using Modified RFM Analysis and Association Rules Mining
-
-  Texto #cite_prose(<chen:2023:retail_association_rules>)#footnote[
+  == Enhancing Retail Transactions: A Data-Driven Recommendation Using Modified RFM Analysis and Association Rules Mining#footnote[
     #cite(<chen:2023:retail_association_rules>, form: "full")
   ]
+
 
 ]
