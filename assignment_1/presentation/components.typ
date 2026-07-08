@@ -141,3 +141,10 @@
     it,
   )
 }
+
+
+// ## Highlight. Destaque.
+
+#let stress = it => {
+  text(fill: theme_color, strong(it))
+}
