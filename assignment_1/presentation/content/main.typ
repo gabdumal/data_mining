@@ -63,11 +63,35 @@
 
 #title_slide("Regressão")
 #slide[
-  == Multi-step ahead predictive model for blood glucose concentrations of type-1 diabetic patients
-
-  Texto #cite_prose(<zaidi:2021:glucose_regression>)#footnote[
+  == Multi-step ahead predictive model for blood glucose concentrations of type-1 diabetic patients#footnote[
     #cite(<zaidi:2021:glucose_regression>, form: "full")
   ]
+
+
+  #stress[Objetivo:] prever os valores futuros da *glicemia* no sangue (BG) (em mg/dL), em múltiplos *instantes* à frente (multi-step forecasting).
+  - Utiliza o histórico recente de glicemia, alimentação e administração de insulina de pacientes com *diabetes tipo 1*.
+
+  #colbreak()
+  #stress[Base de dados:] *300 pacientes* (filtrados para *97*) com diagnóstico de ao menos 2 anos e 18 de idade. Uso de séries temporais de medições de glicose contínuas.
+
+  #stress[Variáveis de entrada]
+  1. Histórico da glicemia (CGM)
+  + Ingestão de carboidratos (Meal intake)
+  + Taxa basal de insulina (Basal insulin)
+  + Bolus de insulina (Bolus insulin)
+
+  As observações são registradas a cada *5 minutos*.
+
+  Outras informações existem na base, mas não são usadas, como: idade, sexo, anos desde o diagnóstico, atividade física, entre outras.
+
+  #colbreak()
+  #stress[Resultados]
+  - O modelo apresentou boa *precisão* para previsões de até *30 minutos*.
+    - Saída em valores *contínuos* de mg/dL.
+    - RMSE de 23.22 ± 6.39 mg/dL.
+  - Autores afirmam indicar *utilidade clínica*.
+    - Aproximadamente 80% das previsões ficaram na Zona A da grade de Clarke.
+    - Aproximadamente 85% ficaram na Zona A da grade de Parkes.
 
 ]
 
