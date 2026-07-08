@@ -138,10 +138,59 @@
 
 #title_slide("Regras de associação")
 #slide[
-
   == Enhancing Retail Transactions: A Data-Driven Recommendation Using Modified RFM Analysis and Association Rules Mining#footnote[
     #cite(<chen:2023:retail_association_rules>, form: "full")
   ]
 
+  #stress[Objetivo:] identificar *padrões de compra* em transações de *varejo* para construir um sistema de *recomendação* de produtos.
+  - Os autores combinam regras de associação (ao comparar produtos similares), agrupamento e classificação (ao comparar clientes similares).
 
+  #stress[Base de dados:] Online Retail II, que contém *1.044.848* registros de *transações* realizadas entre dezembro de 2009 a dezembro de 2011.
+
+  #stress[Variáveis originais]
+  + Invoice (identificador da compra)
+  + StockCode (código do produto)
+  + Description (nome do produto)
+  + Quantity
+  + InvoiceDate
+  + Price
+  + CustomerID
+  + Country
+
+  #stress[Agrupamento dos produtos]
+
+  Os autores pré-processaram os tipos de produtos em *18 categorias*, incluindo:
+
+  #grid(
+    columns: 2,
+    column-gutter: 1em,
+    [
+      + lights
+      + decoration
+      + storage
+      + accessories
+      + clothes
+      + candles and incense
+      + stationary
+      + toys
+    ],
+    [
+      9. bags
+      + gifts
+      + bank
+      + kitchen utensils
+      + bedroom utensils
+      + living room utensils
+      + utensils
+    ],
+  )
+
+  #colbreak()
+  #stress[Resultados]
+
+  Os autores verificaram alta associação entre certas categorias de produtos.
+  - Num cluster de clientes em *potencial*, há 78.506% de confiança de que comprem juntos: `bag`, `gift`, `stationery`, `decoration`, e `kitchen utensils`.
+  - Num cluster de clientes *fiéis*, há 69.35% de confiança em comprar `stationery` e `kitchen utensils` quando também compram: `bags` e `storage`.
+
+  O tipo de produtos antecedentes e consequentes *variam* conforme o *perfil* do cliente.
 ]
