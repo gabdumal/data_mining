@@ -129,7 +129,7 @@ O problema pode ser tratado como:
 
 #title_slide("Trabalhos relacionados")
 
-== #cite_prose(<oliveira:2026:radiografias_odontologicas_grupos_etarios>)#footnote[
+== Oliveira, Ferreira e Júnior (2026) #footnote[
   #cite(<oliveira:2026:radiografias_odontologicas_grupos_etarios>, form: "full")
 ]
 
@@ -152,7 +152,7 @@ O problema pode ser tratado como:
 
 #pagebreak()
 
-== #cite_prose(<lee:2026:machine_learning_adult_age_estimation>)#footnote[
+== Lee _et al._ (2026) #footnote[
   #cite(<lee:2026:machine_learning_adult_age_estimation>, form: "full")
 ]
 
