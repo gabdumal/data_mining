@@ -24,6 +24,13 @@
     custom: foreign_text[machine learning],
     group: "Computação",
   ),
+  (
+    key: "cbct",
+    short: "CBCT",
+    long: "tomografia computadorizada de feixe cônico",
+    custom: foreign_text[cone beam computed tomography],
+    group: "Saúde",
+  ),
 )
 
 #let glossary_entries = (
