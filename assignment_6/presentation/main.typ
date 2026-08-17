@@ -1,5 +1,6 @@
 #import "packages.typ": *
 #import "components.typ": *
+#import "data/glossary.typ": glossaries_entries
 #import "template.typ": *
 
 
@@ -9,10 +10,14 @@
   it,
   // Define the color of links and cross-references.
   // Defina a cor dos links e das referências cruzadas.
-  color_of_links: theme_color,
+  color_of_links: theme_color.darken(30%),
 )
 #show: it => quati-abnt.bibliography.template(it)
 #show: it => quati-abnt.footnote.template(it)
+
+
+#show: glossarium.make-glossary
+#glossarium.register-glossary(glossaries_entries)
 
 
 // ## Content. Conteúdo.
@@ -38,3 +43,10 @@
     Este trabalho recebeu apoio da Fundação de Amparo à Pesquisa do Estado de Minas Gerais (FAPEMIG).
   ]
 ]
+
+
+#glossarium.print-glossary(
+  disable-back-references: true,
+  invisible: true,
+  glossaries_entries,
+)

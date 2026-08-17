@@ -79,13 +79,16 @@
 ]
 
 
-#let focus_slide = it => [
+#let focus_slide = (
+  color: theme_color,
+  it,
+) => [
   #set page(
     header: none,
     footer: none,
     foreground: none,
     margin: leading,
-    fill: theme_color,
+    fill: color,
   )
   #set align(center + horizon)
   #set text(

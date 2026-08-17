@@ -1,6 +1,6 @@
 // # Glossary. Glossário.
 
-#import "../../util.typ": foreign_text
+#import "../packages.typ": quati-abnt.common.components.foreign_text
 
 #let abbreviations_entries = (
   (
@@ -16,6 +16,13 @@
     long: "Norma Brasileira",
     longplural: "Normas Brasileiras",
     group: "Normatização",
+  ),
+  (
+    key: "ml",
+    short: "ML",
+    long: "aprendizado de máquina",
+    custom: foreign_text[machine learning],
+    group: "Computação",
   ),
 )
 
