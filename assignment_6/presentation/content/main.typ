@@ -46,7 +46,6 @@ Realizar as manipulações de formas não invasivas, e que permitam *preservar* 
 
 #title_slide("Abordagem")
 
-
 == Métodos
 
 O problema pode ser tratado como:
@@ -56,7 +55,7 @@ O problema pode ser tratado como:
 #stress[Classificação] em grupos etários\
 #align(center)[
   #set text(fill: black.lighten(30%))
-  [criança (1-14), jovem (15-25), adulto (26-99)];\ [0-20, 21-40, 41-60, 61-80, 81-100]
+  [criança (01-14), jovem (15-25), adulto (26-99)]\ [0-20, 21-40, 41-60, 61-80, 81-100]
 ]
 
 #stress[Regressão] da idade estimada
@@ -104,7 +103,7 @@ O problema pode ser tratado como:
   gutter: 16pt,
 
   [
-    #block(below: 2em, text(weight: "bold", size: 1.2em)[Entrada])
+    #header_2_formatting[Entrada]
 
     #stress[Radiografia panorâmica]
 
@@ -126,3 +125,40 @@ O problema pode ser tratado como:
     )
   ],
 )
+
+
+#title_slide("Trabalhos relacionados")
+
+== #cite_prose(<oliveira:2026:radiografias_odontologicas_grupos_etarios>)#footnote[
+  #cite(<oliveira:2026:radiografias_odontologicas_grupos_etarios>, form: "full")
+]
+
+#grid(
+  columns: (1fr, 2fr),
+  gutter: 16pt,
+  [
+    - #stress[Classificam] em:
+      - criança (01 - 14);
+      - jovem (15 - 25);
+      - adulto (26 - 99).
+  ],
+  [
+    - Montaram um banco de 1545 #stress[radiografias] panorâmicas (1 a 91 anos)#footnote[
+        Universidade Federal do Ceará. Acesso em: #link("https://ageestimationsbcas2026.github.io/Age-estimation-from-panoramic-dental-radiographs/").
+      ].
+    - *Entrada:* imagem, idade, sexo, condição de cada dente #text(fill: black.lighten(30%))[(presente, ausente, incluso, radicular, implante, traumatismo)].
+  ],
+)
+
+#pagebreak()
+
+== #cite_prose(<lee:2026:machine_learning_adult_age_estimation>)#footnote[
+  #cite(<lee:2026:machine_learning_adult_age_estimation>, form: "full")
+]
+
+
+- #stress[Regressão] por @ml. Comparado com regressão linear convencional.
+- Montaram um banco de 2415 #stress[radiografias] panorâmicas (20 a 90 anos)#footnote[
+    Universidade Católica da Coreia, Hospital St. Mary de Seul. Solicitamos o banco aos autores.
+  ].
+- *Entrada:* imagem, idade, sexo, condições de cada dente #text(fill: black.lighten(30%))[(hígido, ausente, impactado, defeito, raiz residual, canal, restauração, prótese, implante)]#footnote[Pode registrar uma, ou duas características, caso o dente apresente ambas.].

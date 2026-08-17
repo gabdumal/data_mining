@@ -152,3 +152,5 @@
 #let stress = it => {
   text(fill: theme_color, strong(it))
 }
+
+#let header_2_formatting = it => block(below: 2em, text(weight: "bold", size: 1.2em, it))
