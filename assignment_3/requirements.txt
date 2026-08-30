@@ -6,3 +6,4 @@ seaborn>=0.13
 Jinja2>=3.1
 statsmodels>=0.14
 kmodes>=0.12
+import-ipynb>=0.2
