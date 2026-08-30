@@ -1,4 +1,4 @@
-agriblocks = [
+types_of_agriblock = [
     "Chinnasalem",
     "Cuddalore",
     "Kallakurichi",
@@ -9,7 +9,7 @@ agriblocks = [
 
 varieties = ["CO_43", "delux ponni", "ponmani"]
 
-soil_types = [
+types_of_soil = [
     "alluvial",
     "clay",
 ]
