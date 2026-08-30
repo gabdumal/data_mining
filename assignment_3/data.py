@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 from categorical import (
     nursery_modes,
@@ -7,7 +8,10 @@ from categorical import (
     varieties,
     wind_directions,
 )
-from columns import names_of_columns
+from columns import (
+    names_of_columns,
+    numeric_columns,
+)
 
 # Read data
 df = pd.read_csv("data/trabalho3_dados_1.csv")
@@ -63,3 +67,10 @@ df.wind_direction_d91_d120 = pd.Categorical(
     categories=wind_directions,
     ordered=False,
 )
+
+
+# Scale features
+scaler = StandardScaler()
+
+scaled_df = df.copy()
+scaled_df[numeric_columns] = scaler.fit_transform(df[numeric_columns])

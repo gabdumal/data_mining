@@ -69,3 +69,23 @@ names_of_columns = [
     # Paddy produced from the field
     ("paddy_yield", "Paddy yield (in Kg)"),
 ]
+
+
+target_columns = ["trash", "paddy_yield"]
+
+
+categorical_columns = [
+    "agriblock",
+    "variety",
+    "soil_type",
+    "nursery",
+    "wind_direction_d1_d30",
+    "wind_direction_d31_d60",
+    "wind_direction_d61_d90",
+    "wind_direction_d91_d120",
+]
+
+
+numeric_columns = [
+    c for (c, _) in names_of_columns if c not in categorical_columns + target_columns
+]
