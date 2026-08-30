@@ -1,4 +1,4 @@
-# Mineração de dados
+# Mineração de dados — Tratamento de dados
 
 ## Referências
 
