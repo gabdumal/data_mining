@@ -67,10 +67,25 @@ df.wind_direction_d91_d120 = pd.Categorical(
 
 dd_df = df.drop_duplicates()
 
+
+# ## Características derivadas
+# A produtividade, medida em `paddy_yield` e em `trash` é aproximadamente escalada com o tamanho da plantação, determinado por `hectare`, havendo certa variação.
+# Para melhor comparar os objetivos, foram criadas as características `paddy_yield_per_hectare` e `trash_per_hectare`, que substituem aquelas absolutas.
+a_df = dd_df.copy()
+
+a_df["paddy_yield_per_hectare"] = a_df.paddy_yield / a_df.hectares
+names_of_columns.update({"paddy_yield_per_hectare": "Paddy yield (in Kg / hectare)"})
+
+a_df["trash_per_hectare"] = a_df.trash / a_df.hectares
+names_of_columns.update({"trash_per_hectare": "Trash (in bundles / hectare)"})
+
+a_df.drop(columns=["paddy_yield", "trash"])
+
+
 # Scale features
 scaler = StandardScaler()
 
-scaled_df = dd_df.copy()
+scaled_df = a_df.copy()
 scaled_df[numerical_columns + target_columns] = scaler.fit_transform(
-    dd_df[numerical_columns + target_columns]
+    a_df[numerical_columns + target_columns]
 )

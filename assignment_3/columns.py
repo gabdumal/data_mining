@@ -71,7 +71,7 @@ names_of_columns = [
 ]
 
 
-target_columns = ["trash", "paddy_yield"]
+target_columns = ["paddy_yield_per_hectare", "trash_per_hectare"]
 
 
 categorical_columns = [
@@ -87,5 +87,39 @@ categorical_columns = [
 
 
 numerical_columns = [
-    c for (c, _) in names_of_columns if c not in categorical_columns + target_columns
+    "hectares",
+    "seed_rate",
+    "lp_mainfield",
+    "nursery_area",
+    "lp_nursery_area",
+    "dap_d20",
+    "weed_d28_thiobencarb",
+    "urea_d40",
+    "potash_d50",
+    "micronutrients_d70",
+    "pesticide_d60",
+    "rainfall_d1_d30",
+    "irrigation_d1_d30",
+    "rainfall_d30_d50",
+    "irrigation_d30_d50",
+    "rainfall_d51_d70",
+    "irrigation_d51_d70",
+    "rainfall_d71_d105",
+    "irrigation_d71_d105",
+    "min_temp_d1_d30",
+    "max_temp_d1_d30",
+    "min_temp_d31_d60",
+    "max_temp_d31_d60",
+    "min_temp_d61_d90",
+    "max_temp_d61_d90",
+    "min_temp_d91_d120",
+    "max_temp_d91_d120",
+    "wind_speed_d1_d30",
+    "wind_speed_d31_d60",
+    "wind_speed_d61_d90",
+    "wind_speed_d91_d120",
+    "relative_humidity_d1_d30",
+    "relative_humidity_d31_d60",
+    "relative_humidity_d61_d90",
+    "relative_humidity_d91_d120",
 ]
