@@ -71,6 +71,6 @@ dd_df = df.drop_duplicates()
 scaler = StandardScaler()
 
 scaled_df = dd_df.copy()
-scaled_df[[*numerical_columns, *target_columns]] = scaler.fit_transform(
-    dd_df[[*numerical_columns, *target_columns]]
+scaled_df[numerical_columns + target_columns] = scaler.fit_transform(
+    dd_df[numerical_columns + target_columns]
 )
