@@ -8,10 +8,7 @@ from categorical import (
     varieties,
     wind_directions,
 )
-from columns import (
-    names_of_columns,
-    numeric_columns,
-)
+from columns import names_of_columns, numerical_columns, target_columns
 
 # Read data
 df = pd.read_csv("data/trabalho3_dados_1.csv")
@@ -73,4 +70,6 @@ df.wind_direction_d91_d120 = pd.Categorical(
 scaler = StandardScaler()
 
 scaled_df = df.copy()
-scaled_df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+scaled_df[[*numerical_columns, *target_columns]] = scaler.fit_transform(
+    df[[*numerical_columns, *target_columns]]
+)

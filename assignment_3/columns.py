@@ -86,6 +86,6 @@ categorical_columns = [
 ]
 
 
-numeric_columns = [
+numerical_columns = [
     c for (c, _) in names_of_columns if c not in categorical_columns + target_columns
 ]
