@@ -65,11 +65,12 @@ df.wind_direction_d91_d120 = pd.Categorical(
     ordered=False,
 )
 
+dd_df = df.drop_duplicates()
 
 # Scale features
 scaler = StandardScaler()
 
-scaled_df = df.copy()
+scaled_df = dd_df.copy()
 scaled_df[[*numerical_columns, *target_columns]] = scaler.fit_transform(
-    df[[*numerical_columns, *target_columns]]
+    dd_df[[*numerical_columns, *target_columns]]
 )
