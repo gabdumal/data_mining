@@ -9,7 +9,7 @@ def plot_bar_graph(
     label: str | None = None,
     title: str | None = None,
     show_value: bool = False,
-    show_percentage: bool = False,
+    percentage_function=None,
     y_tick_step: int | None = None,
     sort_by: str = "natural",
 ):
@@ -61,20 +61,19 @@ def plot_bar_graph(
         )
         ax.grid(axis="y", linestyle="--", alpha=0.5)
 
-    total = data.sum()
-
-    if show_value or show_percentage:
+    if show_value or percentage_function is not None:
         for i, value in enumerate(data):
             auxiliary_text = ""
 
             if show_value:
                 auxiliary_text += f"{value:.0f}"
 
-            if show_percentage:
+            if percentage_function is not None:
                 if show_value:
                     auxiliary_text += "\n"
-                percentage = value / total * 100
-                auxiliary_text += f"{percentage:.1f}%"
+
+                percentage = percentage_function(value, data)
+                auxiliary_text += f"{percentage:.1%}"
 
             ax.text(
                 i,
