@@ -82,7 +82,7 @@ descriptions_of_columns = [
     ("leite_de_coco", "Leite de coco"),
     ("leite", "Leite"),
     ("limpeza_de_pele", "Limpeza de pele"),
-    ("limpeza_de_roupas", "Limpeza de Roupas"),
+    ("limpeza_de_roupas", "Limpeza de roupas"),
     ("lixa_para_unha", "Lixa para unha"),
     ("macarrao", "Macarrão"),
     ("maionese", "Maionese"),
@@ -153,3 +153,10 @@ def columns_labels() -> list[str]:
 
 def columns_names() -> list[str]:
     return [name for _, name in descriptions_of_columns]
+
+
+name_of_column = dict(descriptions_of_columns)
+
+
+def get_name_of_column(label: str) -> str:
+    return name_of_column[label]
