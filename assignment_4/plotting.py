@@ -8,6 +8,7 @@ def plot_bar_graph(
     series: pd.Series,
     label: str | None = None,
     title: str | None = None,
+    show_value: bool = False,
     show_percentage: bool = False,
     y_tick_step: int | None = None,
     sort_by: str = "natural",
@@ -60,16 +61,25 @@ def plot_bar_graph(
         )
         ax.grid(axis="y", linestyle="--", alpha=0.5)
 
-    if show_percentage:
-        total = data.sum()
+    total = data.sum()
 
+    if show_value or show_percentage:
         for i, value in enumerate(data):
-            percentage = value / total * 100
+            auxiliary_text = ""
+
+            if show_value:
+                auxiliary_text += f"{value:.0f}"
+
+            if show_percentage:
+                if show_value:
+                    auxiliary_text += "\n"
+                percentage = value / total * 100
+                auxiliary_text += f"{percentage:.1f}%"
 
             ax.text(
                 i,
                 value,
-                f"{percentage:.1f}%",
+                auxiliary_text,
                 ha="center",
                 va="bottom",
                 fontsize=8,
