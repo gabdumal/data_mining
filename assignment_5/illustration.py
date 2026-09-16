@@ -5,6 +5,8 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+import matplotlib.pyplot as plt
+from sklearn.tree import plot_tree
 from sklearn.model_selection import StratifiedKFold
 
 from columns import get_name_of_column
@@ -250,3 +252,44 @@ def classification_metrics_comparison_table(
             "f1_macro": "{:.4f}",
         }
     ).set_caption("Desempenho dos modelos no conjunto de teste")
+
+
+def feature_importance_table(
+    model,
+    feature_names: list[str],
+) -> pd.io.formats.style.Styler:
+    classifier = model.named_steps["classifier"]
+
+    data = pd.DataFrame(
+        {
+            "feature": feature_names,
+            "importance": classifier.feature_importances_,
+        }
+    )
+
+    data = data.sort_values(
+        "importance",
+        ascending=False,
+    ).reset_index(drop=True)
+
+    return data.style.format(
+        {
+            "importance": "{:.4f}",
+        }
+    ).set_caption("Importância das features na Decision Tree")
+
+
+def plot_decision_tree(decision_tree, numerical_columns):
+    plt.figure(figsize=(20, 10))
+
+    plot_tree(
+        decision_tree,
+        feature_names=numerical_columns,
+        class_names=decision_tree.classes_,
+        filled=True,
+        rounded=True,
+        fontsize=9,
+    )
+
+    plt.tight_layout()
+    plt.show()

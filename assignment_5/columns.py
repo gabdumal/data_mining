@@ -1,7 +1,7 @@
 descriptions_of_columns = [
     ("age", "Age"),
-    ("systolic_bp", "Systolic BP"),
-    ("diastolic_bp", "Diastolic BP"),
+    ("systolic_bp", "Systolic blood pressure"),
+    ("diastolic_bp", "Diastolic blood pressure"),
     ("blood_sugar", "Blood sugar"),
     ("body_temperature", "Body temperature"),
     ("heart_rate", "Heart rate"),
