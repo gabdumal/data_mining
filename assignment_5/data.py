@@ -33,4 +33,4 @@ display("\nDuplicated rows:")
 display(df.duplicated().sum())
 
 # Remove duplicates
-dd = df.drop_duplicates()
+dd_df = df.drop_duplicates()
