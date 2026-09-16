@@ -16,8 +16,8 @@ df.columns = columns_labels()
 descriptions_of_columns = dict(descriptions_of_columns)
 
 # Coerce categorical features
-df.risk_level = df.risk_level.replace(levels_of_risk_renaming)
-df.risk_level = pd.Categorical(
+df["risk_level"] = df.risk_level.replace(levels_of_risk_renaming)
+df["risk_level"] = pd.Categorical(
     df.risk_level,
     categories=levels_of_risk,
     ordered=False,
@@ -34,3 +34,37 @@ display(df.duplicated().sum())
 
 # Remove duplicates
 dd_df = df.drop_duplicates()
+
+
+# Treat outliers
+t_df = dd_df.copy()
+
+
+def treat_outliers_through_iqr(
+    data_frame: pd.DataFrame,
+    column_label: str,
+):
+    first_quartile = data_frame[column_label].quantile(0.25)
+    third_quartile = data_frame[column_label].quantile(0.75)
+    iqr = third_quartile - first_quartile
+    lower = first_quartile - 1.5 * iqr
+    upper = third_quartile + 1.5 * iqr
+    data_frame[column_label] = data_frame[column_label].clip(
+        lower=lower,
+        upper=upper,
+    )
+    return data_frame
+
+
+for column_label in [
+    "age",
+    "systolic_bp",
+    "diastolic_bp",
+    "blood_sugar",
+    "body_temperature",
+    "heart_rate",
+]:
+    t_df = treat_outliers_through_iqr(
+        data_frame=t_df,
+        column_label=column_label,
+    )

@@ -1,8 +1,10 @@
+import itertools
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from columns import get_name_of_column
-import itertools
 
 
 def plot_bar_graph(
@@ -13,6 +15,7 @@ def plot_bar_graph(
     percentage_function=None,
     y_tick_step: int | None = None,
     sort_by: str = "natural",
+    figsize=(18, 9),
 ):
     if sort_by == "natural":
         data = series.sort_index()
@@ -23,7 +26,7 @@ def plot_bar_graph(
 
     values = data.to_numpy(dtype=float)
 
-    fig, ax = plt.subplots(figsize=(20, 10))
+    fig, ax = plt.subplots(figsize=figsize)
 
     x = range(len(data))
 
@@ -34,6 +37,12 @@ def plot_bar_graph(
         data.index,
         rotation=45,
         ha="right",
+        fontsize=16,
+    )
+
+    ax.tick_params(
+        axis="y",
+        labelsize=16,
     )
 
     x_axis_label = label
@@ -46,11 +55,21 @@ def plot_bar_graph(
             else str(column_name)
         )
 
-    ax.set_xlabel(x_axis_label)
-    ax.set_ylabel("Quantidade")
+    ax.set_xlabel(
+        x_axis_label,
+        fontsize=18,
+    )
+
+    ax.set_ylabel(
+        "Quantidade",
+        fontsize=18,
+    )
 
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(
+            title,
+            fontsize=20,
+        )
 
     if y_tick_step is not None:
         ax.set_yticks(
@@ -60,7 +79,12 @@ def plot_bar_graph(
                 y_tick_step,
             )
         )
-        ax.grid(axis="y", linestyle="--", alpha=0.5)
+
+        ax.grid(
+            axis="y",
+            linestyle="--",
+            alpha=0.5,
+        )
 
     if show_value or percentage_function is not None:
         for i, value in enumerate(data):
@@ -82,8 +106,11 @@ def plot_bar_graph(
                 auxiliary_text,
                 ha="center",
                 va="bottom",
-                fontsize=8,
+                fontsize=16,
             )
+
+        if len(values) > 0:
+            ax.set_ylim(top=max(values) * 1.15)
 
     fig.tight_layout()
     plt.show()
@@ -91,26 +118,27 @@ def plot_bar_graph(
 
 def plot_histogram(
     series: pd.Series,
-    bin_width: int,
+    bin_width: float,
     label: str | None = None,
     title: str | None = None,
     show_value: bool = False,
     percentage_function=None,
+    figsize=(18, 9),
 ):
     data = series.dropna()
 
-    minimum = int(data.min())
-    maximum = int(data.max())
+    minimum = data.min()
+    maximum = data.max()
 
     first_bin = minimum - minimum % bin_width
 
-    bin_edges = range(
+    bin_edges = np.arange(
         first_bin,
-        maximum + bin_width + 1,
+        maximum + bin_width,
         bin_width,
-    )
+    ).tolist()
 
-    fig, ax = plt.subplots(figsize=(24, 10))
+    fig, ax = plt.subplots(figsize=figsize)
 
     counts, bin_edges, _ = ax.hist(
         data,
@@ -129,30 +157,49 @@ def plot_histogram(
             else str(column_name)
         )
 
-    ax.set_xlabel(x_axis_label, fontsize=18)
-    ax.set_ylabel("Quantidade", fontsize=18)
+    ax.set_xlabel(
+        x_axis_label,
+        fontsize=18,
+    )
+
+    ax.set_ylabel(
+        "Quantidade",
+        fontsize=18,
+    )
 
     if title is not None:
-        ax.set_title(title, fontsize=20)
+        ax.set_title(
+            title,
+            fontsize=20,
+        )
 
     bin_centers = [(left + right) / 2 for left, right in itertools.pairwise(bin_edges)]
 
     ax.set_xticks(bin_centers)
 
+    if bin_width == 1:
+        bin_labels = [f"{left:.0f}" for left, _ in itertools.pairwise(bin_edges)]
+    else:
+        bin_labels = [
+            f"{left:g}–{right:g}" for left, right in itertools.pairwise(bin_edges)
+        ]
+
     ax.set_xticklabels(
-        [
-            f"{left:.0f}–{right - 1:.0f}"
-            for left, right in itertools.pairwise(bin_edges)
-        ],
+        bin_labels,
         rotation=45,
         ha="right",
         fontsize=16,
     )
 
-    ax.tick_params(axis="y", labelsize=16)
+    ax.tick_params(
+        axis="y",
+        labelsize=16,
+    )
 
     if show_value or percentage_function is not None:
         for count, center in zip(counts, bin_centers):
+            count = float(count)
+
             if count == 0:
                 continue
 
@@ -176,7 +223,8 @@ def plot_histogram(
                 va="bottom",
                 fontsize=16,
             )
-        ax.set_ylim(top=max(counts) * 1.15)
+
+        ax.set_ylim(top=float(max(counts)) * 1.15)
 
     fig.tight_layout()
     plt.show()
