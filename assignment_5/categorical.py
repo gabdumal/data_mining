@@ -4,4 +4,4 @@ levels_of_risk_renaming = {
     "high risk": "high",
 }
 
-levels_of_risk = list(levels_of_risk_renaming.values())
+levels_of_risk = ["low", "mid", "high"]

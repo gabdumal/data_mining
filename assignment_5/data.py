@@ -23,7 +23,7 @@ df["risk_level"] = df.risk_level.replace(levels_of_risk_renaming)
 df["risk_level"] = pd.Categorical(
     df.risk_level,
     categories=levels_of_risk,
-    ordered=False,
+    ordered=True,
 )
 
 display("Data types:")
