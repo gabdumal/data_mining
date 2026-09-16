@@ -1,11 +1,13 @@
 import pandas as pd
 from IPython.display import display
+from sklearn.preprocessing import StandardScaler
 
 from categorical import levels_of_risk, levels_of_risk_renaming
 from columns import columns_labels, descriptions_of_columns
 
 # Read data
 df = pd.read_csv("data/maternal_health_risk_subbase_1.csv")
+
 
 # Rename features
 if len(df.columns) != len(descriptions_of_columns):
@@ -14,6 +16,7 @@ if len(df.columns) != len(descriptions_of_columns):
     )
 df.columns = columns_labels()
 descriptions_of_columns = dict(descriptions_of_columns)
+
 
 # Coerce categorical features
 df["risk_level"] = df.risk_level.replace(levels_of_risk_renaming)
@@ -32,14 +35,14 @@ display(df.isna().sum())
 display("\nDuplicated rows:")
 display(df.duplicated().sum())
 
+a_df = df.copy()
+
+
 # Remove duplicates
-dd_df = df.drop_duplicates()
+a_df = df.drop_duplicates()
 
 
 # Treat outliers
-t_df = dd_df.copy()
-
-
 def treat_outliers_through_iqr(
     data_frame: pd.DataFrame,
     column_label: str,
@@ -61,10 +64,36 @@ for column_label in [
     "systolic_bp",
     "diastolic_bp",
     "blood_sugar",
-    "body_temperature",
     "heart_rate",
 ]:
-    t_df = treat_outliers_through_iqr(
-        data_frame=t_df,
+    a_df = treat_outliers_through_iqr(
+        data_frame=a_df,
         column_label=column_label,
     )
+
+
+# Normalize features
+standard_scaler = StandardScaler()
+
+
+numerical_columns = [
+    "age",
+    "systolic_bp",
+    "diastolic_bp",
+    "blood_sugar",
+    "body_temperature",
+    "heart_rate",
+]
+
+categorical_columns = ["risk_level"]
+
+
+def normalize_features(
+    data_frame: pd.DataFrame,
+    numerical_columns: list[str],
+):
+    data_frame = data_frame.copy()
+    data_frame[numerical_columns] = standard_scaler.fit_transform(
+        data_frame[numerical_columns]
+    )
+    return data_frame
