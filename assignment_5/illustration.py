@@ -1,6 +1,10 @@
-from itertools import product
-
 import pandas as pd
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import StratifiedKFold
 
 from columns import get_name_of_column
@@ -199,3 +203,50 @@ def best_parameters_table(
             ),
         }
     ).set_caption("Melhores hiperparâmetros")
+
+
+def calculate_classification_metrics(
+    y_true,
+    y_pred,
+) -> dict:
+    return {
+        "accuracy": accuracy_score(
+            y_true,
+            y_pred,
+        ),
+        "precision_macro": precision_score(
+            y_true,
+            y_pred,
+            average="macro",
+            zero_division=0,
+        ),
+        "recall_macro": recall_score(
+            y_true,
+            y_pred,
+            average="macro",
+            zero_division=0,
+        ),
+        "f1_macro": f1_score(
+            y_true,
+            y_pred,
+            average="macro",
+            zero_division=0,
+        ),
+    }
+
+
+def classification_metrics_comparison_table(
+    model_metrics: dict,
+) -> pd.io.formats.style.Styler:
+    data = pd.DataFrame(model_metrics).T
+
+    data.index.name = "model"
+
+    return data.style.format(
+        {
+            "accuracy": "{:.4f}",
+            "precision_macro": "{:.4f}",
+            "recall_macro": "{:.4f}",
+            "f1_macro": "{:.4f}",
+        }
+    ).set_caption("Desempenho dos modelos no conjunto de teste")
