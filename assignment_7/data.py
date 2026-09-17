@@ -1,7 +1,13 @@
 import pandas as pd
 from IPython.display import display
 
-from features import age_ranges, sexes
+from features import (
+    age_ranges,
+    format_mouth_condition,
+    format_sex,
+    mouth_conditions,
+    sexes,
+)
 
 # Read data
 df = pd.read_csv("data/patients.csv")
@@ -9,11 +15,15 @@ df = pd.read_csv("data/patients.csv")
 
 # Coerce categorical features
 df["sex"] = pd.Categorical(
-    df.sex,
-    categories=sexes,
+    df["sex"].map(format_sex),
+    categories=[format_sex(sex) for sex in sexes],
     ordered=False,
 )
-
+df["mouth_condition"] = pd.Categorical(
+    df["mouth_condition"].map(format_mouth_condition),
+    categories=[format_mouth_condition(condition) for condition in mouth_conditions],
+    ordered=False,
+)
 
 # Transform age into ranges
 df["age_range"] = pd.cut(
