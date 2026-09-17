@@ -122,8 +122,8 @@ conditions: dict[int, Condition] = {
 
 
 class Sex(Enum):
-    M = "Masculine"
-    F = "Feminine"
+    M = "M"
+    F = "F"
 
 
 @dataclass
@@ -131,24 +131,24 @@ class Patient:
     id: int
     age: int
     sex: Sex
-    amount_of_ed: int
-    amount_of_m3f: int
-    amount_of_h: int
-    amount_of_de: int
-    amount_of_r: int
-    amount_of_m3i: int
-    amount_of_cpum: int
-    amount_of_te: int
-    amount_of_di: int
-    amount_of_c: int
-    amount_of_p: int
-    amount_of_me: int
-    amount_of_im: int
-    amount_of_rr: int
-    amount_of_dc: int
-    amount_of_i: int
-    amount_of_mne: int
-    amount_of_ri: int
-    amount_of_rim: int
-    amount_of_tem: int
-    amount_of_cp: int
+    amount_of_ed: int = 0
+    amount_of_m3f: int = 0
+    amount_of_h: int = 0
+    amount_of_de: int = 0
+    amount_of_r: int = 0
+    amount_of_m3i: int = 0
+    amount_of_cpum: int = 0
+    amount_of_te: int = 0
+    amount_of_di: int = 0
+    amount_of_c: int = 0
+    amount_of_p: int = 0
+    amount_of_me: int = 0
+    amount_of_im: int = 0
+    amount_of_rr: int = 0
+    amount_of_dc: int = 0
+    amount_of_i: int = 0
+    amount_of_mne: int = 0
+    amount_of_ri: int = 0
+    amount_of_rim: int = 0
+    amount_of_tem: int = 0
+    amount_of_cp: int = 0
