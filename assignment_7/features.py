@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Literal
+
+# # Data on JSON
 
 
 class SuperCategory(Enum):
@@ -121,9 +124,9 @@ conditions: dict[int, Condition] = {
 }
 
 
-class Sex(Enum):
-    M = "M"
-    F = "F"
+# # Records
+
+Sex = Literal["M", "F"]
 
 
 @dataclass
@@ -152,3 +155,48 @@ class Patient:
     amount_of_rim: int = 0
     amount_of_tem: int = 0
     amount_of_cp: int = 0
+
+
+# # Features
+
+descriptions_of_columns = [
+    ("id", "ID"),
+    ("age", "Age"),
+    ("sex", "Sex"),
+    ("amount_of_ed", "Am. Ed"),
+    ("amount_of_m3f", "Am. M3f"),
+    ("amount_of_h", "Am. H"),
+    ("amount_of_de", "Am. De"),
+    ("amount_of_r", "Am. R"),
+    ("amount_of_m3i", "Am. M3i"),
+    ("amount_of_cpum", "Am. CpuM"),
+    ("amount_of_te", "Am. Te"),
+    ("amount_of_di", "Am. Di"),
+    ("amount_of_c", "Am. C"),
+    ("amount_of_p", "Am. P"),
+    ("amount_of_me", "Am. Me"),
+    ("amount_of_im", "Am. Im"),
+    ("amount_of_rr", "Am. Rr"),
+    ("amount_of_dc", "Am. Dc"),
+    ("amount_of_i", "Am. I"),
+    ("amount_of_mne", "Am. Mne"),
+    ("amount_of_ri", "Am. Ri"),
+    ("amount_of_rim", "Am. RiM"),
+    ("amount_of_tem", "Am. TeM"),
+    ("amount_of_cp", "Am. Cp"),
+]
+
+
+def columns_labels() -> list[str]:
+    return [label for label, _ in descriptions_of_columns]
+
+
+def columns_names() -> list[str]:
+    return [name for _, name in descriptions_of_columns]
+
+
+name_of_column = dict(descriptions_of_columns)
+
+
+def get_name_of_column(label: str) -> str:
+    return name_of_column[label]

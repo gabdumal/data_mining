@@ -3,7 +3,7 @@ import json
 from dataclasses import fields
 from pathlib import Path
 
-from features import Condition, Patient, Sex, conditions
+from features import Condition, Patient, conditions
 
 
 def condition_to_field(condition: Condition) -> str:
@@ -17,7 +17,7 @@ def extract_patients(data: dict) -> list[Patient]:
         image["id"]: Patient(
             id=image["id"],
             age=int(image["age"]),
-            sex=Sex(image["sex"]),
+            sex=image["sex"],
         )
         for image in data["images"]
     }
@@ -45,12 +45,7 @@ def write_csv(patients: list[Patient], output_path: Path) -> None:
 
         for patient in patients:
             row = {
-                field.name: (
-                    patient.sex.name
-                    if field.name == "sex"
-                    else getattr(patient, field.name)
-                )
-                for field in fields(Patient)
+                field.name: (getattr(patient, field.name)) for field in fields(Patient)
             }
 
             writer.writerow(row)
