@@ -1,38 +1,53 @@
-from typing import get_args
-
 import pandas as pd
 from IPython.display import display
 
-from features import Sex, columns_labels, descriptions_of_columns
+from features import age_ranges, sexes
 
 # Read data
 df = pd.read_csv("data/patients.csv")
 
 
-# Rename features
-if len(df.columns) != len(descriptions_of_columns):
-    raise ValueError(
-        f"Expected {len(descriptions_of_columns)} columns, but CSV contains {len(df.columns)}"
-    )
-df.columns = columns_labels()
-descriptions_of_columns = dict(descriptions_of_columns)
-
-
 # Coerce categorical features
 df["sex"] = pd.Categorical(
     df.sex,
-    categories=get_args(Sex),
+    categories=sexes,
     ordered=False,
 )
 
+
+# Transform age into ranges
+df["age_range"] = pd.cut(
+    df["age"],
+    bins=[
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        float("inf"),
+    ],
+    labels=age_ranges,
+    right=False,
+    include_lowest=True,
+)
+df["age_range"] = pd.Categorical(
+    df["age_range"],
+    categories=age_ranges,
+    ordered=True,
+)
+
+
+# Display statistics
 display("Data types:")
 display(df.dtypes)
 
-display("\nMissing values:")
+display("Missing values:")
 display(df.isna().sum())
 
-display("\nDuplicated rows:")
-display(df.duplicated().sum())
+display(f"Duplicated rows: {df.duplicated().sum()}")
+
 
 # # Treat outliers
 # def treat_outliers_through_iqr(

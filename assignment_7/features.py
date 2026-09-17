@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal
+from typing import Literal, get_args
 
-# # Data on JSON
+# Data on JSON
 
 
 class SuperCategory(Enum):
@@ -20,7 +20,11 @@ class Condition:
 
 
 conditions: dict[int, Condition] = {
-    1: Condition(label="Ed", name="Edentulous", super_category=SuperCategory.Mouth),
+    1: Condition(
+        label="Ed",
+        name="Edentulous",
+        super_category=SuperCategory.Mouth,
+    ),
     2: Condition(
         label="M3f",
         name="Developing third molar",
@@ -124,9 +128,10 @@ conditions: dict[int, Condition] = {
 }
 
 
-# # Records
+# Records
 
 Sex = Literal["M", "F"]
+sexes = get_args(Sex)
 
 
 @dataclass
@@ -157,33 +162,48 @@ class Patient:
     amount_of_cp: int = 0
 
 
-# # Features
+# Age ranges
+
+AgeRange = Literal[
+    "10-19",
+    "20-29",
+    "30-39",
+    "40-49",
+    "50-59",
+    "60-69",
+    "70+",
+]
+age_ranges = get_args(AgeRange)
+
+
+# Features
 
 descriptions_of_columns = [
     ("id", "ID"),
     ("age", "Age"),
     ("sex", "Sex"),
-    ("amount_of_ed", "Am. Ed"),
-    ("amount_of_m3f", "Am. M3f"),
-    ("amount_of_h", "Am. H"),
-    ("amount_of_de", "Am. De"),
-    ("amount_of_r", "Am. R"),
-    ("amount_of_m3i", "Am. M3i"),
-    ("amount_of_cpum", "Am. CpuM"),
-    ("amount_of_te", "Am. Te"),
-    ("amount_of_di", "Am. Di"),
-    ("amount_of_c", "Am. C"),
-    ("amount_of_p", "Am. P"),
-    ("amount_of_me", "Am. Me"),
-    ("amount_of_im", "Am. Im"),
-    ("amount_of_rr", "Am. Rr"),
-    ("amount_of_dc", "Am. Dc"),
-    ("amount_of_i", "Am. I"),
-    ("amount_of_mne", "Am. Mne"),
-    ("amount_of_ri", "Am. Ri"),
-    ("amount_of_rim", "Am. RiM"),
-    ("amount_of_tem", "Am. TeM"),
-    ("amount_of_cp", "Am. Cp"),
+    ("amount_of_ed", "Am. Edentulous (Ed)"),
+    ("amount_of_m3f", "Am. Developing third molar (M3f)"),
+    ("amount_of_h", "Am. Healthy (H)"),
+    ("amount_of_de", "Am. Dentate (De)"),
+    ("amount_of_r", "Am. Restored (R)"),
+    ("amount_of_m3i", "Am. Impacted third molar (M3i)"),
+    ("amount_of_cpum", "Am. Single prosthetic crown (mixed) (CpuM)"),
+    ("amount_of_te", "Am. Endodontic treatment (Te)"),
+    ("amount_of_di", "Am. Incisal wear (Di)"),
+    ("amount_of_c", "Am. Caries (C)"),
+    ("amount_of_p", "Am. Pontic (P)"),
+    ("amount_of_me", "Am. Maxilla edentulous (Me)"),
+    ("amount_of_im", "Am. Implant (Im)"),
+    ("amount_of_rr", "Am. Residual root (Rr)"),
+    ("amount_of_dc", "Am. Crown destruction (Dc)"),
+    ("amount_of_i", "Am. Impacted (I)"),
+    ("amount_of_mne", "Am. Mandible edentulous (Mne)"),
+    ("amount_of_ri", "Am. Intraradicular post (Ri)"),
+    ("amount_of_rim", "Am. Intraradicular post (mixed) (RiM)"),
+    ("amount_of_tem", "Am. Endodontic treatment (mixed) (TeM)"),
+    ("amount_of_cp", "Am. Single prosthetic crown (Cp)"),
+    ("age_range", "Age range"),
 ]
 
 
