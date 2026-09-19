@@ -2,7 +2,7 @@ import pandas as pd
 from IPython.display import display
 
 from features import (
-    age_ranges,
+    age_groups,
     format_mouth_condition,
     format_sex,
     mouth_conditions,
@@ -26,7 +26,7 @@ df["mouth_condition"] = pd.Categorical(
 )
 
 # Transform age into ranges
-df["age_range"] = pd.cut(
+df["age_group"] = pd.cut(
     df["age"],
     bins=[
         10,
@@ -38,13 +38,13 @@ df["age_range"] = pd.cut(
         70,
         float("inf"),
     ],
-    labels=age_ranges,
+    labels=age_groups,
     right=False,
     include_lowest=True,
 )
-df["age_range"] = pd.Categorical(
-    df["age_range"],
-    categories=age_ranges,
+df["age_group"] = pd.Categorical(
+    df["age_group"],
+    categories=age_groups,
     ordered=True,
 )
 

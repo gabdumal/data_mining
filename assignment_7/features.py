@@ -183,7 +183,7 @@ class Patient:
     amount_of_cpum: int = 0
 
 
-# Age ranges
+# Age groups
 
 AgeRange = Literal[
     "10-19",
@@ -194,15 +194,15 @@ AgeRange = Literal[
     "60-69",
     "70+",
 ]
-age_ranges = get_args(AgeRange)
+age_groups = get_args(AgeRange)
 
 
 # Features
 
-descriptions_of_columns = [
+descriptions_of_features = [
     ("id", "ID"),
     ("age", "Age"),
-    ("age_range", "Age range"),
+    ("age_group", "Age group"),
     ("sex", "Sex"),
     ("mouth_condition", "Mouth condition"),
     ("amount_of_m3f", "Am. Developing third molar (M3f)"),
@@ -225,16 +225,16 @@ descriptions_of_columns = [
 ]
 
 
-def columns_labels() -> list[str]:
-    return [label for label, _ in descriptions_of_columns]
+def labels_of_features() -> list[str]:
+    return [label for label, _ in descriptions_of_features]
 
 
-def columns_names() -> list[str]:
-    return [name for _, name in descriptions_of_columns]
+def names_of_features() -> list[str]:
+    return [name for _, name in descriptions_of_features]
 
 
-name_of_column = dict(descriptions_of_columns)
+name_of_feature = dict(descriptions_of_features)
 
 
-def get_name_of_column(label: str) -> str:
-    return name_of_column[label]
+def get_name_of_feature(label: str) -> str:
+    return name_of_feature[label]
