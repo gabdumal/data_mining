@@ -142,7 +142,7 @@ def format_sex(sex):
     raise ValueError(f"Unknown sex: {sex}")
 
 
-MouthCondition = Literal["Ed", "De", "Me", "Mne"]
+MouthCondition = Literal["De", "Ed", "Me", "Mne"]
 mouth_conditions = get_args(MouthCondition)
 
 

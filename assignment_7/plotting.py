@@ -1,6 +1,6 @@
 import itertools
 from collections.abc import Callable
-from typing import Literal
+from typing import Literal, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,11 +23,11 @@ VALUE_FONTSIZE = 16
 LEGEND_FONTSIZE = 14
 LEGEND_TITLE_FONTSIZE = 15
 
-SET2_PALETTE = [
-    plt.cm.Set2(index / (plt.cm.Set2.N - 1)) for index in range(plt.cm.Set2.N)
-]
+PALETTE = [plt.cm.Set2(index / (plt.cm.Set2.N - 1)) for index in range(plt.cm.Set2.N)]
+PALETTE[0], PALETTE[1] = (PALETTE[1], PALETTE[0])
+PALETTE[4], PALETTE[5] = (PALETTE[5], PALETTE[4])
 
-DEFAULT_COLOR = SET2_PALETTE[1]
+DEFAULT_COLOR = PALETTE[0]
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ def _get_colors(
     start_index: int = 0,
 ) -> list:
     return [
-        SET2_PALETTE[index % len(SET2_PALETTE)]
+        PALETTE[index % len(PALETTE)]
         for index in range(start_index, start_index + amount)
     ]
 
@@ -59,13 +59,12 @@ def _get_age_group_colors(
     contains_general: bool = True,
 ) -> list:
     """
-    First color is reserved for 'General' (Set2[1]).
-    Remaining colors follow the Set2 palette while skipping Set2[1].
+    First color is reserved for 'General' (PALETTE[0]).
     """
-    age_group_colors = [color for index, color in enumerate(SET2_PALETTE) if index != 1]
+    age_group_colors = PALETTE[1:]
 
     if contains_general:
-        age_group_colors.insert(0, DEFAULT_COLOR)
+        age_group_colors = [PALETTE[0], *age_group_colors]
 
     return age_group_colors[:amount]
 
@@ -194,7 +193,9 @@ def display_feature_description(
 
     descriptive_name = get_name_of_feature(column_name)
 
+    fig = None
     block_to_display = f"""
+    <h2>{descriptive_name}</h2>
     <table>
         <caption>{descriptive_name}</caption>
         <tbody>
@@ -268,12 +269,12 @@ def display_feature_description(
         """
 
         if age_group is None:
-            set_boxplot(
+            fig, _ = set_boxplot(
                 series=series,
                 label=descriptive_name,
             )
         else:
-            set_boxplot_by_age_group(
+            fig, _ = set_boxplot_by_age_group(
                 series=series,
                 age_group=age_group,
                 label=descriptive_name,
@@ -285,6 +286,8 @@ def display_feature_description(
     """
 
     display(HTML(block_to_display))
+    if fig is not None:
+        _finish_plot(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -978,3 +981,184 @@ def plot_histogram_by_age_group(
         fig.subplots_adjust(top=0.95)
 
     plt.show()
+
+
+# ---------------------------------------------------------------------------
+# Statistical data
+# ---------------------------------------------------------------------------
+
+
+def _get_feature_group(
+    data_frame: pd.DataFrame,
+    feature: str,
+    age_group: str | None = None,
+) -> pd.Series:
+    """
+    Return a feature series for the general population or one age group.
+    """
+    if age_group is None:
+        return cast(
+            pd.Series,
+            data_frame[feature],
+        )
+
+    mask = data_frame["age_group"] == age_group
+
+    return cast(
+        pd.Series,
+        data_frame.loc[mask, feature],
+    )
+
+
+def _get_age_groups(
+    data_frame: pd.DataFrame,
+) -> list[str]:
+    """
+    Return the ordered age-group labels.
+    """
+    return [str(age_group) for age_group in data_frame["age_group"].cat.categories]
+
+
+def _format_presence(
+    group: pd.Series,
+) -> str:
+    """
+    Format presence count and prevalence as an HTML cell.
+    """
+    total = group.size
+    present = (group.to_numpy() > 0).sum()
+
+    percentage = present / total if total > 0 else 0
+
+    return f"Present: {present}<br>Prevalence: {percentage:.1%}"
+
+
+def _format_count_statistics(
+    group: pd.Series,
+) -> str:
+    """
+    Format descriptive statistics for a count series as an
+    HTML cell with one statistic per line.
+    """
+    std = group.std()
+    std_text = f"{std:.2f}" if pd.notna(std) else "N/A"
+
+    return (
+        f"N: {group.size}<br>"
+        f"Mean: {group.mean():.2f}<br>"
+        f"Std: {std_text}<br>"
+        f"Median: {group.median():.2f}<br>"
+        f"Q1: {group.quantile(0.25):.2f}<br>"
+        f"Q3: {group.quantile(0.75):.2f}<br>"
+        f"Min: {group.min():.0f}<br>"
+        f"Max: {group.max():.0f}"
+    )
+
+
+def _build_age_group_table(
+    data_frame: pd.DataFrame,
+    features: list[str],
+    cell_formatter,
+) -> pd.DataFrame:
+    """
+    Build a table containing one row per feature and one column
+    for the general population and each age group.
+    """
+    age_groups = _get_age_groups(data_frame)
+
+    rows = []
+
+    for feature in features:
+        row = {
+            "Feature": get_name_of_feature(feature),
+        }
+
+        # General population
+        group = _get_feature_group(
+            data_frame,
+            feature,
+        )
+
+        row["General"] = cell_formatter(group)
+
+        # Age groups
+        for age_group in age_groups:
+            group = _get_feature_group(
+                data_frame,
+                feature,
+                age_group,
+            )
+
+            row[age_group] = cell_formatter(group)
+
+        rows.append(row)
+
+    return pd.DataFrame(rows).set_index("Feature")
+
+
+def _display_age_group_table(
+    table: pd.DataFrame,
+    caption: str,
+):
+    """
+    Display an age-group table as HTML.
+    """
+    display(HTML(table.style.set_caption(caption).to_html()))
+
+
+def display_condition_presence_by_age_group(
+    data_frame: pd.DataFrame,
+    features: list[str],
+):
+    table = _build_age_group_table(
+        data_frame=data_frame,
+        features=features,
+        cell_formatter=_format_presence,
+    )
+
+    _display_age_group_table(
+        table,
+        "Presence of dental conditions by age group",
+    )
+
+
+def display_condition_counts_by_age_group(
+    data_frame: pd.DataFrame,
+    features: list[str],
+):
+    table = _build_age_group_table(
+        data_frame=data_frame,
+        features=features,
+        cell_formatter=_format_count_statistics,
+    )
+
+    _display_age_group_table(
+        table,
+        "Distribution of dental condition counts by age group",
+    )
+
+
+def display_condition_counts_among_affected_by_age_group(
+    data_frame: pd.DataFrame,
+    features: list[str],
+):
+    def format_affected_counts(
+        group: pd.Series,
+    ) -> str:
+        group = group[group > 0]
+
+        if group.empty:
+            return "N: 0"
+
+        return _format_count_statistics(group)
+
+    table = _build_age_group_table(
+        data_frame=data_frame,
+        features=features,
+        cell_formatter=format_affected_counts,
+    )
+
+    _display_age_group_table(
+        table,
+        "Count distribution among affected patients by age group",
+    )

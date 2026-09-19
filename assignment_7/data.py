@@ -49,41 +49,41 @@ df["age_group"] = pd.Categorical(
 )
 
 
-# Display statistics
-display("Data types:")
-display(df.dtypes)
-
-display("Missing values:")
-display(df.isna().sum())
-
-display(f"Duplicated rows: {df.duplicated().sum()}")
-
-
-# # Treat outliers
-# def treat_outliers_through_iqr(
-#     data_frame: pd.DataFrame,
-#     column_label: str,
-# ):
-#     first_quartile = data_frame[column_label].quantile(0.25)
-#     third_quartile = data_frame[column_label].quantile(0.75)
-#     iqr = third_quartile - first_quartile
-#     lower = first_quartile - 1.5 * iqr
-#     upper = third_quartile + 1.5 * iqr
-#     data_frame[column_label] = data_frame[column_label].clip(
-#         lower=lower,
-#         upper=upper,
-#     )
-#     return data_frame
+# Remove features that do not have relevant amount of values different from 0
+df2_features = [
+    "age_group",
+    "sex",
+    "mouth_condition",
+    "amount_of_im",
+    "amount_of_p",
+    "amount_of_h",
+    "amount_of_rr",
+    "amount_of_m3i",
+    "amount_of_m3f",
+    "amount_of_te",
+    "amount_of_dc",
+    "amount_of_di",
+    "amount_of_c",
+    "amount_of_r",
+    "amount_of_cpum",
+]
+df2 = df[df2_features].copy()
 
 
-# for column_label in [
-#     "age",
-#     "systolic_bp",
-#     "diastolic_bp",
-#     "blood_sugar",
-#     "heart_rate",
-# ]:
-#     a_df = treat_outliers_through_iqr(
-#         data_frame=a_df,
-#         column_label=column_label,
-#     )
+# Remove features that do not have significative differences between age groups
+df3_features = [
+    "age_group",
+    "sex",
+    "mouth_condition",
+    "amount_of_im",
+    "amount_of_p",
+    "amount_of_h",
+    "amount_of_m3i",
+    "amount_of_m3f",
+    "amount_of_te",
+    "amount_of_di",
+    "amount_of_c",
+    "amount_of_r",
+    "amount_of_cpum",
+]
+df3 = df[df3_features].copy()
