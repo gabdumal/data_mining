@@ -1,5 +1,4 @@
 import pandas as pd
-from IPython.display import display
 
 from features import (
     age_groups,
@@ -71,10 +70,12 @@ df2 = df[df2_features].copy()
 
 
 # Remove features that do not have significative differences between age groups
-df3_features = [
-    "age_group",
+df3_target_feature = "age_group"
+df3_categorical_features = [
     "sex",
     "mouth_condition",
+]
+df3_numerical_features = [
     "amount_of_im",
     "amount_of_p",
     "amount_of_h",
@@ -86,4 +87,6 @@ df3_features = [
     "amount_of_r",
     "amount_of_cpum",
 ]
-df3 = df[df3_features].copy()
+df3_input_features = df3_categorical_features + df3_numerical_features
+df3_features = [df3_target_feature] + df3_input_features
+df3 = df2[df3_features].copy()

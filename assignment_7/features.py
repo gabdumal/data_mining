@@ -185,7 +185,7 @@ class Patient:
 
 # Age groups
 
-AgeRange = Literal[
+AgeGroup = Literal[
     "10-19",
     "20-29",
     "30-39",
@@ -194,7 +194,7 @@ AgeRange = Literal[
     "60-69",
     "70+",
 ]
-age_groups = get_args(AgeRange)
+age_groups = get_args(AgeGroup)
 
 
 # Features
