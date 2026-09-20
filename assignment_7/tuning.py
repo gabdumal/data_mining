@@ -3,7 +3,7 @@ from sklearn.model_selection import (
     StratifiedKFold,
 )
 
-from helper_for_task import get_best_grid_search_parameters
+from helper_for_validation import get_best_grid_search_parameters
 from pipelines import (
     _build_decision_tree_pipeline,
     input_data_for_train,
@@ -22,15 +22,12 @@ decision_tree_pipeline = _build_decision_tree_pipeline(
 )
 
 
-def _build_grid_search_for_decision_tree(
-    random_state,
-    param_grid,
-):
+def _build_grid_search_for_decision_tree(random_state, param_grid, use_smote: bool):
     """Build a GridSearchCV for the SMOTENC + Decision Tree pipeline."""
 
     pipeline = _build_decision_tree_pipeline(
         random_state=random_state,
-        use_smote=True,
+        use_smote=use_smote,
     )
 
     stratified_cross_validation = StratifiedKFold(
@@ -58,10 +55,7 @@ def _build_grid_search_for_decision_tree(
 
 
 def run_grid_searches_for_decision_tree(
-    input_data,
-    target_data,
-    seeds,
-    param_grid,
+    input_data, target_data, seeds, param_grid, use_smote: bool
 ):
     """Run Decision Tree GridSearchCV for multiple CV seeds."""
 
@@ -69,8 +63,7 @@ def run_grid_searches_for_decision_tree(
 
     for current_seed in seeds:
         grid_search = _build_grid_search_for_decision_tree(
-            random_state=current_seed,
-            param_grid=param_grid,
+            random_state=current_seed, param_grid=param_grid, use_smote=use_smote
         )
 
         grid_search.fit(
@@ -90,13 +83,24 @@ param_grid_of_decision_tree = {
     "classifier__min_samples_leaf": [1, 2, 5],
 }
 
-grid_searches_for_decision_tree = run_grid_searches_for_decision_tree(
+grid_searches_for_decision_tree_without_smote = run_grid_searches_for_decision_tree(
     input_data_for_train,
     target_data_for_train,
     seeds=seeds,
     param_grid=param_grid_of_decision_tree,
+    use_smote=False,
+)
+best_parameters_for_decision_tree_without_smote = get_best_grid_search_parameters(
+    grid_searches_for_decision_tree_without_smote
 )
 
-best_parameters_for_decision_tree = get_best_grid_search_parameters(
-    grid_searches_for_decision_tree
+grid_searches_for_decision_tree_with_smote = run_grid_searches_for_decision_tree(
+    input_data_for_train,
+    target_data_for_train,
+    seeds=seeds,
+    param_grid=param_grid_of_decision_tree,
+    use_smote=True,
+)
+best_parameters_for_decision_tree_with_smote = get_best_grid_search_parameters(
+    grid_searches_for_decision_tree_with_smote
 )

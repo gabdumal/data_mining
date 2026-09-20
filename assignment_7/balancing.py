@@ -7,11 +7,11 @@ from sklearn.model_selection import (
 from pipelines import _build_decision_tree_pipeline
 
 # ---------------------------------------------------------------------------
-# Balancing
+# Decision tree
 # ---------------------------------------------------------------------------
 
 
-def compare_smote(
+def compare_smote_for_decision_tree(
     input_data,
     target_data,
     seeds,
