@@ -1,6 +1,7 @@
 import math
 from collections.abc import Mapping
 
+import numpy as np
 import pandas as pd
 from IPython.display import display
 from sklearn.model_selection import GridSearchCV
@@ -211,6 +212,12 @@ def _get_grid_search_parameter_columns(
         "Balanced Accuracy Std",
         "Accuracy",
         "Accuracy Std",
+        "F1 Macro mean",
+        "F1 Macro std",
+        "Balanced Accuracy mean",
+        "Balanced Accuracy std",
+        "Accuracy mean",
+        "Accuracy std",
     }
 
     return [column for column in data_frame.columns if column not in excluded_columns]
@@ -571,35 +578,42 @@ def display_grid_search_summary(
     display(styled_summary)
 
 
+def _normalize_grid_search_parameter(
+    value: object,
+) -> object:
+    """Normalize a GridSearchCV parameter value."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, float):
+        if math.isnan(value):
+            return None
+
+        if value.is_integer():
+            return int(value)
+
+    if isinstance(value, np.integer):
+        return int(value)
+
+    return value
+
+
 def get_best_grid_search_parameters(
     grid_searches: Mapping[int, GridSearchCV],
 ) -> dict[str, object]:
-    """Return the parameter configuration with the highest mean Macro F1."""
+    """Return the parameters with the highest cross-seed mean Macro F1."""
 
     summary = _prepare_grid_search_summary(grid_searches)
-
-    parameter_columns = _get_grid_search_parameter_columns(summary)
 
     if summary.empty:
         raise ValueError("GridSearchCV summary is empty.")
 
+    parameter_columns = _get_grid_search_parameter_columns(summary)
+
     best_row = summary.iloc[0]
 
-    best_parameters: dict[str, object] = {}
-
-    for parameter in parameter_columns:
-        value = best_row[parameter]
-
-        if parameter == "classifier__max_depth":
-            value = _format_grid_search_parameter_value(value)
-
-            if value == "None":
-                best_parameters[parameter] = None
-            else:
-                best_parameters[parameter] = int(value)
-        elif isinstance(value, float) and value.is_integer():
-            best_parameters[parameter] = int(value)
-        else:
-            best_parameters[parameter] = value
-
-    return best_parameters
+    return {
+        parameter: _normalize_grid_search_parameter(best_row[parameter])
+        for parameter in parameter_columns
+    }
