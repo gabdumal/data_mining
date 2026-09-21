@@ -4,20 +4,15 @@ from sklearn.model_selection import (
     cross_validate,
 )
 
-from pipelines import _build_decision_tree_pipeline
 
-# ---------------------------------------------------------------------------
-# Decision tree
-# ---------------------------------------------------------------------------
-
-
-def compare_smote_for_decision_tree(
+def compare_smote(
+    build_pipeline,
     input_data,
     target_data,
     seeds,
     n_splits=5,
 ):
-    """Compare Decision Tree performance with and without SMOTE."""
+    """Compare a model pipeline with and without SMOTE."""
 
     scoring = {
         "accuracy": "accuracy",
@@ -35,11 +30,11 @@ def compare_smote_for_decision_tree(
         )
 
         pipelines = {
-            "Without SMOTE": _build_decision_tree_pipeline(
+            "Without SMOTE": build_pipeline(
                 random_state=current_seed,
                 use_smote=False,
             ),
-            "With SMOTE": _build_decision_tree_pipeline(
+            "With SMOTE": build_pipeline(
                 random_state=current_seed,
                 use_smote=True,
             ),
@@ -61,17 +56,20 @@ def compare_smote_for_decision_tree(
                 {
                     "Seed": current_seed,
                     "Strategy": strategy,
-                    "Accuracy": cross_validation_results["test_accuracy"].mean(),
-                    "Balanced Accuracy": cross_validation_results[
-                        "test_balanced_accuracy"
-                    ].mean(),
-                    "Macro F1": cross_validation_results["test_f1_macro"].mean(),
+                    "Accuracy": (cross_validation_results["test_accuracy"].mean()),
+                    "Balanced Accuracy": (
+                        cross_validation_results["test_balanced_accuracy"].mean()
+                    ),
+                    "Macro F1": (cross_validation_results["test_f1_macro"].mean()),
                 }
             )
 
     results = pd.DataFrame(results)
 
-    comparison = results.groupby("Strategy").agg(
+    comparison = results.groupby(
+        "Strategy",
+        observed=True,
+    ).agg(
         {
             "Accuracy": ["mean", "std"],
             "Balanced Accuracy": ["mean", "std"],

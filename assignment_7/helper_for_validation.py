@@ -196,6 +196,8 @@ GRID_SEARCH_PARAMETER_LABELS = {
     "classifier__max_depth": "Max Depth",
     "classifier__min_samples_split": "Min Samples Split",
     "classifier__min_samples_leaf": "Min Samples Leaf",
+    "classifier__max_features": "Max Features",
+    "classifier__n_estimators": "N estimators",
 }
 
 

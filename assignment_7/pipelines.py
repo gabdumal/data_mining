@@ -1,5 +1,6 @@
 from imblearn.over_sampling import SMOTENC
 from imblearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import (
     train_test_split,
 )
@@ -18,7 +19,13 @@ from data import (
 # Definitions
 # ---------------------------------------------------------------------------
 
-seeds = [1, 2, 3, 4, 5]
+seeds = [
+    27,
+    32,
+    59,
+    74,
+    93,
+]
 seed = seeds[0]
 
 categorical_features = df3_categorical_features
@@ -66,7 +73,7 @@ test_size = 0.2
 
 
 # ---------------------------------------------------------------------------
-# Pipelines
+# Decision Tree
 # ---------------------------------------------------------------------------
 
 
@@ -88,6 +95,58 @@ def _build_decision_tree_pipeline(
         "classifier",
         DecisionTreeClassifier(
             random_state=random_state,
+        ),
+    )
+
+    if use_smote:
+        smote = (
+            "smote",
+            SMOTENC(
+                random_state=random_state,
+                categorical_features=categorical_feature_indices,
+            ),
+        )
+
+        return Pipeline(
+            [
+                encoder,
+                smote,
+                classifier,
+            ]
+        )
+
+    return Pipeline(
+        [
+            encoder,
+            classifier,
+        ]
+    )
+
+
+# ---------------------------------------------------------------------------
+# Random Forest
+# ---------------------------------------------------------------------------
+
+
+def _build_random_forest_pipeline(
+    random_state: int,
+    use_smote: bool,
+):
+    """Build a SMOTENC + Random Forest pipeline."""
+
+    encoder = (
+        "encoder",
+        FunctionTransformer(
+            encode_categorical_features,
+            validate=False,
+        ),
+    )
+
+    classifier = (
+        "classifier",
+        RandomForestClassifier(
+            random_state=random_state,
+            n_jobs=-1,
         ),
     )
 
