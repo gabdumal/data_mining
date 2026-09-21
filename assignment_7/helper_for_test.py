@@ -1,22 +1,34 @@
-from collections.abc import Callable, Mapping
+from __future__ import annotations
+
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from typing import Any, Literal, Protocol, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from IPython.display import display
+from pandas.io.formats.style import Styler
 from sklearn.base import BaseEstimator
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
     confusion_matrix,
     f1_score,
+    mean_absolute_error,
+    mean_squared_error,
     precision_recall_fscore_support,
+    r2_score,
 )
 
 from helper_for_analysis import PALETTE
 
-AGE_GROUP_ORDER = [
+# =============================================================================
+# Constants
+# =============================================================================
+
+AGE_GROUP_ORDER: tuple[str, ...] = (
     "10-19",
     "20-29",
     "30-39",
@@ -24,212 +36,124 @@ AGE_GROUP_ORDER = [
     "50-59",
     "60-69",
     "70+",
+)
+
+CLASSIFICATION_TEST_METRICS: dict[str, bool] = {
+    "Accuracy": True,
+    "Balanced Accuracy": True,
+    "Macro F1": True,
+}
+
+REGRESSION_TEST_METRICS: dict[str, bool] = {
+    "MAE": False,
+    "RMSE": False,
+    "R²": True,
+}
+
+TABLE_STYLES = [
+    {
+        "selector": "th",
+        "props": [
+            ("text-align", "center"),
+        ],
+    },
+    {
+        "selector": "td",
+        "props": [
+            ("text-align", "center"),
+        ],
+    },
 ]
 
-TEST_METRIC_COLUMNS = [
-    "Accuracy",
-    "Balanced Accuracy",
-    "Macro F1",
+
+Task = Literal["classification", "regression"]
+
+
+# =============================================================================
+# Protocols and data classes
+# =============================================================================
+
+
+class PredictiveModel(Protocol):
+    """Protocol for the fitted models used in this module."""
+
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+    ) -> PredictiveModel: ...
+
+    def predict(
+        self,
+        X: pd.DataFrame,
+    ) -> npt.NDArray[Any]: ...
+
+    def set_params(
+        self,
+        **params: object,
+    ) -> PredictiveModel: ...
+
+
+class PipelineModel(PredictiveModel, Protocol):
+    """Protocol for fitted sklearn/imblearn pipelines."""
+
+    named_steps: Mapping[str, object]
+
+
+MetricCalculator = Callable[
+    [pd.Series, pd.Series],
+    dict[str, float],
 ]
 
 
 @dataclass
 class ModelTestResults:
-    """Store predictions, metrics, and feature importances from repeated test runs."""
+    """Store repeated test-set predictions, metrics, and feature importances."""
 
     model_name: str
+    task: Task
     predictions: dict[int, pd.Series]
     seed_metrics: pd.DataFrame
     feature_importances: dict[int, pd.Series]
 
 
-def run_model_test_evaluation(
-    model_name: str,
-    model_factory: Callable[[int], BaseEstimator],
-    best_parameters: Mapping[str, object],
-    input_data_for_train: pd.DataFrame,
-    target_data_for_train: pd.Series,
-    input_data_for_test: pd.DataFrame,
-    target_data_for_test: pd.Series,
-    seeds: list[int],
-) -> ModelTestResults:
-    """Fit a final model for each seed and evaluate it on the fixed test set."""
-
-    predictions = {}
-    metric_rows = []
-    feature_importances = {}
-
-    for current_seed in seeds:
-        model = model_factory(current_seed)
-
-        model.set_params(**best_parameters)
-
-        model.fit(  # type: ignore
-            input_data_for_train,
-            target_data_for_train,
-        )
-
-        predicted_values = model.predict(  # type: ignore
-            input_data_for_test,
-        )
-
-        predicted_series = pd.Series(
-            predicted_values,
-            index=target_data_for_test.index,
-            name="prediction",
-        )
-
-        predictions[current_seed] = predicted_series
-
-        metric_rows.append(
-            {
-                "Model": model_name,
-                "Seed": current_seed,
-                "Accuracy": accuracy_score(
-                    target_data_for_test,
-                    predicted_series,
-                ),
-                "Balanced Accuracy": balanced_accuracy_score(
-                    target_data_for_test,
-                    predicted_series,
-                ),
-                "Macro F1": f1_score(
-                    target_data_for_test,
-                    predicted_series,
-                    average="macro",
-                    zero_division=0,
-                ),
-            }
-        )
-
-        feature_importances[current_seed] = _extract_feature_importances(
-            model,
-            feature_names=list(input_data_for_train.columns),
-        )
-
-    seed_metrics = pd.DataFrame(metric_rows)
-
-    return ModelTestResults(
-        model_name=model_name,
-        predictions=predictions,
-        seed_metrics=seed_metrics,
-        feature_importances=feature_importances,
-    )
+# =============================================================================
+# Generic validation and formatting helpers
+# =============================================================================
 
 
-def prepare_seed_test_results(
-    model_results: Mapping[str, ModelTestResults],
-) -> pd.DataFrame:
-    """Combine seed-level test metrics for all models."""
-
-    data_frames = [results.seed_metrics for results in model_results.values()]
-
-    combined_results = pd.concat(
-        data_frames,
-        ignore_index=True,
-    )
-
-    return combined_results.sort_values(
-        by=["Seed", "Model"],
-    ).reset_index(drop=True)
-
-
-def _highlight_seed_metric_winners(
+def _require_columns(
     data_frame: pd.DataFrame,
-) -> pd.DataFrame:
-    """Highlight the higher metric value within each seed."""
-
-    styles = pd.DataFrame(
-        "",
-        index=data_frame.index,
-        columns=data_frame.columns,
-    )
-
-    for seed in data_frame["Seed"].unique():
-        seed_mask = data_frame["Seed"] == seed
-
-        for metric in TEST_METRIC_COLUMNS:
-            metric_values = data_frame.loc[
-                seed_mask,
-                metric,
-            ]
-
-            if metric_values.empty:  # type: ignore
-                continue
-
-            best_index = metric_values.idxmax()  # type: ignore
-
-            styles.at[
-                best_index,
-                metric,
-            ] = "font-weight: bold"
-
-    return styles
-
-
-def display_seed_test_results(
-    data_frame: pd.DataFrame,
-    caption: str = "Test Performance by Seed",
+    required_columns: Sequence[str],
+    context: str,
 ) -> None:
-    """Display seed-level test metrics."""
+    """Raise a descriptive error when required columns are missing."""
 
-    display_data = data_frame.copy()
-
-    styled_data = (
-        display_data.style.hide(axis="index")
-        .format(
-            {
-                "Accuracy": "{:.4f}",
-                "Balanced Accuracy": "{:.4f}",
-                "Macro F1": "{:.4f}",
-            }
-        )
-        .set_caption(caption)
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-                {
-                    "selector": "td",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-            ]
-        )
-        .apply(
-            _highlight_seed_metric_winners,
-            axis=None,
-        )
-    )
-
-    display(styled_data)
-
-
-def prepare_test_summary(
-    seed_test_results: pd.DataFrame,
-) -> pd.DataFrame:
-    """Calculate mean and standard deviation across test seeds."""
-
-    summary = (
-        seed_test_results.groupby("Model", observed=True)[TEST_METRIC_COLUMNS]
-        .agg(["mean", "std"])
-        .reset_index()
-    )
-
-    summary.columns = [
-        column[0] if column[1] == "" else f"{column[0]} {column[1]}"
-        for column in summary.columns
+    missing_columns = [
+        column for column in required_columns if column not in data_frame.columns
     ]
 
-    return summary.sort_values(
-        by="Macro F1 mean",
-        ascending=False,
-    ).reset_index(drop=True)
+    if missing_columns:
+        raise ValueError(
+            f"{context} is missing required columns: {', '.join(missing_columns)}"
+        )
+
+
+def _validate_predictions_against_target(
+    predictions: Mapping[int, pd.Series],
+    target_data_for_test: pd.Series,
+) -> None:
+    """Validate prediction indices against the fixed test-set index."""
+
+    if not predictions:
+        raise ValueError("predictions must contain at least one seed.")
+
+    for seed, predicted_values in predictions.items():
+        if not predicted_values.index.equals(target_data_for_test.index):
+            raise ValueError(
+                f"Prediction index for seed {seed} does not match "
+                "the target test-set index."
+            )
 
 
 def _format_mean_std(
@@ -241,55 +165,36 @@ def _format_mean_std(
     return f"{mean_value:.4f} ± {std_value:.4f}"
 
 
-def prepare_test_summary_display(
-    summary: pd.DataFrame,
-) -> pd.DataFrame:
-    """Prepare a human-readable cross-seed summary table."""
-
-    display_data = pd.DataFrame(
-        {
-            "Model": summary["Model"],
-            "Accuracy": [
-                _format_mean_std(
-                    mean_value,
-                    std_value,
-                )
-                for mean_value, std_value in zip(
-                    summary["Accuracy mean"],
-                    summary["Accuracy std"],
-                )
-            ],
-            "Balanced Accuracy": [
-                _format_mean_std(
-                    mean_value,
-                    std_value,
-                )
-                for mean_value, std_value in zip(
-                    summary["Balanced Accuracy mean"],
-                    summary["Balanced Accuracy std"],
-                )
-            ],
-            "Macro F1": [
-                _format_mean_std(
-                    mean_value,
-                    std_value,
-                )
-                for mean_value, std_value in zip(
-                    summary["Macro F1 mean"],
-                    summary["Macro F1 std"],
-                )
-            ],
-        }
-    )
-
-    return display_data
-
-
-def _highlight_best_summary_metrics(
+def _style_table(
     data_frame: pd.DataFrame,
-    summary: pd.DataFrame,
+    caption: str,
+    format_mapping: Mapping[str, str] | None = None,
+    hide_index: bool = True,
+) -> Styler:
+    """Create a consistently styled table."""
+
+    styled_data = data_frame.style
+
+    if hide_index:
+        styled_data = styled_data.hide(axis="index")
+
+    if format_mapping is not None:
+        styled_data = styled_data.format(format_mapping)
+
+    return styled_data.set_caption(caption).set_table_styles(TABLE_STYLES)
+
+
+def _highlight_seed_metric_winners(
+    data_frame: pd.DataFrame,
+    metric_directions: Mapping[str, bool],
 ) -> pd.DataFrame:
-    """Highlight the highest mean for each test metric."""
+    """Highlight the best metric values independently within each seed."""
+
+    _require_columns(
+        data_frame,
+        ["Seed", *metric_directions],
+        "_highlight_seed_metric_winners",
+    )
 
     styles = pd.DataFrame(
         "",
@@ -297,71 +202,613 @@ def _highlight_best_summary_metrics(
         columns=data_frame.columns,
     )
 
-    best_metric_columns = {
-        "Accuracy": "Accuracy mean",
-        "Balanced Accuracy": "Balanced Accuracy mean",
-        "Macro F1": "Macro F1 mean",
-    }
+    for metric_name, higher_is_better in metric_directions.items():
+        numeric_values = pd.to_numeric(
+            data_frame[metric_name],
+            errors="coerce",
+        )
 
-    for display_column, numeric_column in best_metric_columns.items():
-        best_index = summary[numeric_column].idxmax()
+        for seed in data_frame["Seed"].unique():
+            seed_mask = data_frame["Seed"] == seed
+            seed_values = numeric_values.loc[seed_mask].dropna()
 
-        styles.at[
-            best_index,
-            display_column,
-        ] = "font-weight: bold"
+            if seed_values.empty:
+                continue
+
+            best_value = seed_values.max() if higher_is_better else seed_values.min()
+
+            winner_mask = seed_mask & numeric_values.eq(best_value)
+            styles.loc[winner_mask, metric_name] = "font-weight: bold"
 
     return styles
 
 
+def _highlight_best_summary_metrics(
+    data_frame: pd.DataFrame,
+    summary: pd.DataFrame,
+    metric_directions: Mapping[str, bool],
+) -> pd.DataFrame:
+    """Highlight the best mean metric value across models."""
+
+    metric_mean_columns = [f"{metric} mean" for metric in metric_directions]
+
+    _require_columns(
+        summary,
+        ["Model", *metric_mean_columns],
+        "_highlight_best_summary_metrics",
+    )
+
+    styles = pd.DataFrame(
+        "",
+        index=data_frame.index,
+        columns=data_frame.columns,
+    )
+
+    for metric_name, higher_is_better in metric_directions.items():
+        numeric_column = f"{metric_name} mean"
+        display_column = metric_name
+
+        if higher_is_better:
+            best_value = summary[numeric_column].max()
+        else:
+            best_value = summary[numeric_column].min()
+
+        winner_mask = summary[numeric_column].eq(best_value)
+        styles.loc[winner_mask, display_column] = "font-weight: bold"
+
+    return styles
+
+
+# =============================================================================
+# Feature importance
+# =============================================================================
+
+
+def _extract_model_feature_names(
+    model: BaseEstimator,
+) -> np.ndarray:
+    """Extract feature names generated by the fitted preprocessing pipeline."""
+
+    if not hasattr(model, "named_steps"):
+        raise ValueError("The model must be a fitted pipeline.")
+
+    named_steps = model.named_steps
+
+    original_feature_names = getattr(
+        model,
+        "feature_names_in_",
+        None,
+    )
+
+    # -----------------------------------------------------------------------
+    # Pipelines with a final OneHotEncoder / ColumnTransformer
+    # -----------------------------------------------------------------------
+
+    for step in reversed(named_steps.values()):
+        get_feature_names_out = getattr(
+            step,
+            "get_feature_names_out",
+            None,
+        )
+
+        if not callable(get_feature_names_out):
+            continue
+
+        # When the transformation receives an ndarray (as in the
+        # SMOTENC pipeline), explicitly provide the original feature
+        # names so sklearn does not generate x0, x1, ..., x10.
+        if original_feature_names is not None:
+            try:
+                feature_names = get_feature_names_out(
+                    original_feature_names,
+                )
+            except (TypeError, ValueError):
+                feature_names = get_feature_names_out()
+        else:
+            feature_names = get_feature_names_out()
+
+        return np.asarray(
+            feature_names,
+            dtype=str,
+        )
+
+    if original_feature_names is not None:
+        return np.asarray(
+            original_feature_names,
+            dtype=str,
+        )
+
+    raise ValueError("Could not determine the model feature names.")
+
+
+def _extract_feature_importances(
+    model: PipelineModel,
+    estimator_step: str,
+) -> pd.Series:
+    """Extract feature importances from a fitted tree-based pipeline."""
+
+    if estimator_step not in model.named_steps:
+        raise ValueError(f"Could not find `{estimator_step}` in the pipeline.")
+
+    estimator = model.named_steps[estimator_step]
+
+    importance_attribute = getattr(
+        estimator,
+        "feature_importances_",
+        None,
+    )
+
+    if importance_attribute is None:
+        raise ValueError(
+            f"{type(estimator).__name__} does not provide `feature_importances_`."
+        )
+
+    importances = np.asarray(
+        cast(npt.ArrayLike, importance_attribute),
+        dtype=float,
+    )
+
+    feature_names = _extract_model_feature_names(model)
+
+    if len(importances) != len(feature_names):
+        raise ValueError(
+            "The number of feature names does not match the number "
+            "of feature importances: "
+            f"{len(feature_names)} != {len(importances)}."
+        )
+
+    cleaned_feature_names = np.asarray(
+        [feature_name.split("__", maxsplit=1)[-1] for feature_name in feature_names],
+        dtype=str,
+    )
+
+    return pd.Series(
+        importances,
+        index=cleaned_feature_names,
+        name="Importance",
+    ).sort_values(
+        ascending=False,
+    )
+
+
+def prepare_feature_importance_summary(
+    results: ModelTestResults,
+) -> pd.DataFrame:
+    """Aggregate feature importance across model seeds."""
+
+    if not results.feature_importances:
+        raise ValueError("Model results contain no feature importances.")
+
+    importance_data = pd.concat(
+        results.feature_importances,
+        axis=1,
+    )
+
+    summary = (
+        pd.DataFrame(
+            {
+                "Feature": importance_data.index,
+                "Importance mean": importance_data.mean(axis=1),
+                "Importance std": importance_data.std(axis=1),
+            }
+        )
+        .sort_values(
+            by="Importance mean",
+            ascending=False,
+        )
+        .reset_index(drop=True)
+    )
+
+    return summary
+
+
+def display_feature_importance(
+    results: ModelTestResults,
+    caption: str = "Feature Importance Across Seeds",
+) -> None:
+    """Display mean feature importance across model seeds."""
+
+    summary = prepare_feature_importance_summary(results)
+
+    display_data = pd.DataFrame(
+        {
+            "Feature": summary["Feature"],
+            "Importance": [
+                _format_mean_std(
+                    float(mean_value),
+                    float(std_value),
+                )
+                for mean_value, std_value in zip(
+                    summary["Importance mean"],
+                    summary["Importance std"],
+                    strict=True,
+                )
+            ],
+        }
+    )
+
+    display(
+        _style_table(
+            display_data,
+            caption=caption,
+        )
+    )
+
+
+# =============================================================================
+# Model evaluation
+# =============================================================================
+
+
+def _calculate_classification_metrics(
+    target_data_for_test: pd.Series,
+    predicted_series: pd.Series,
+) -> dict[str, float]:
+    """Calculate classification test metrics."""
+
+    return {
+        "Accuracy": accuracy_score(
+            target_data_for_test,
+            predicted_series,
+        ),
+        "Balanced Accuracy": balanced_accuracy_score(
+            target_data_for_test,
+            predicted_series,
+        ),
+        "Macro F1": f1_score(
+            target_data_for_test,
+            predicted_series,
+            average="macro",
+            zero_division=0,
+        ),
+    }
+
+
+def _calculate_regression_metrics(
+    target_data_for_test: pd.Series,
+    predicted_series: pd.Series,
+) -> dict[str, float]:
+    """Calculate regression test metrics."""
+
+    rmse = float(
+        np.sqrt(
+            mean_squared_error(
+                target_data_for_test,
+                predicted_series,
+            )
+        )
+    )
+
+    return {
+        "MAE": mean_absolute_error(
+            target_data_for_test,
+            predicted_series,
+        ),
+        "RMSE": rmse,
+        "R²": r2_score(
+            target_data_for_test,
+            predicted_series,
+        ),
+    }
+
+
+def _run_model_test_evaluation(
+    model_name: str,
+    task: Task,
+    model_factory: Callable[[int], PredictiveModel],
+    best_parameters: Mapping[str, object],
+    input_data_for_train: pd.DataFrame,
+    target_data_for_train: pd.Series,
+    input_data_for_test: pd.DataFrame,
+    target_data_for_test: pd.Series,
+    seeds: Sequence[int],
+    metric_calculator: MetricCalculator,
+    estimator_step: str,
+) -> ModelTestResults:
+    """Fit and evaluate a predictive model across repeated test runs."""
+
+    if not seeds:
+        raise ValueError("seeds must contain at least one seed.")
+
+    predictions: dict[int, pd.Series] = {}
+    metric_rows: list[dict[str, object]] = []
+    feature_importances: dict[int, pd.Series] = {}
+
+    for current_seed in seeds:
+        model = model_factory(current_seed)
+
+        model.set_params(**best_parameters)
+
+        model.fit(
+            input_data_for_train,
+            target_data_for_train,
+        )
+
+        predicted_values = np.asarray(
+            model.predict(input_data_for_test),
+        )
+
+        if predicted_values.ndim != 1:
+            raise ValueError(
+                f"Expected one-dimensional predictions, got "
+                f"shape {predicted_values.shape}."
+            )
+
+        predicted_series = pd.Series(
+            predicted_values,
+            index=target_data_for_test.index,
+            name="prediction",
+        )
+
+        predictions[current_seed] = predicted_series
+
+        metric_row: dict[str, object] = {
+            "Model": model_name,
+            "Seed": current_seed,
+        }
+
+        metric_row.update(
+            metric_calculator(
+                target_data_for_test,
+                predicted_series,
+            )
+        )
+
+        metric_rows.append(metric_row)
+
+        pipeline_model = cast(
+            PipelineModel,
+            model,
+        )
+
+        feature_importances[current_seed] = _extract_feature_importances(
+            pipeline_model,
+            estimator_step=estimator_step,
+        )
+
+    return ModelTestResults(
+        model_name=model_name,
+        task=task,
+        predictions=predictions,
+        seed_metrics=pd.DataFrame(metric_rows),
+        feature_importances=feature_importances,
+    )
+
+
+def run_classification_model_test_evaluation(
+    model_name: str,
+    model_factory: Callable[[int], PredictiveModel],
+    best_parameters: Mapping[str, object],
+    input_data_for_train: pd.DataFrame,
+    target_data_for_train: pd.Series,
+    input_data_for_test: pd.DataFrame,
+    target_data_for_test: pd.Series,
+    seeds: Sequence[int],
+) -> ModelTestResults:
+    """Fit and evaluate a classification model on a fixed test set."""
+
+    return _run_model_test_evaluation(
+        model_name=model_name,
+        task="classification",
+        model_factory=model_factory,
+        best_parameters=best_parameters,
+        input_data_for_train=input_data_for_train,
+        target_data_for_train=target_data_for_train,
+        input_data_for_test=input_data_for_test,
+        target_data_for_test=target_data_for_test,
+        seeds=seeds,
+        metric_calculator=_calculate_classification_metrics,
+        estimator_step="classifier",
+    )
+
+
+def run_regression_model_test_evaluation(
+    model_name: str,
+    model_factory: Callable[[int], PredictiveModel],
+    best_parameters: Mapping[str, object],
+    input_data_for_train: pd.DataFrame,
+    target_data_for_train: pd.Series,
+    input_data_for_test: pd.DataFrame,
+    target_data_for_test: pd.Series,
+    seeds: Sequence[int],
+) -> ModelTestResults:
+    """Fit and evaluate a regression model on a fixed test set."""
+
+    return _run_model_test_evaluation(
+        model_name=model_name,
+        task="regression",
+        model_factory=model_factory,
+        best_parameters=best_parameters,
+        input_data_for_train=input_data_for_train,
+        target_data_for_train=target_data_for_train,
+        input_data_for_test=input_data_for_test,
+        target_data_for_test=target_data_for_test,
+        seeds=seeds,
+        metric_calculator=_calculate_regression_metrics,
+        estimator_step="regressor",
+    )
+
+
+# =============================================================================
+# Test metrics
+# =============================================================================
+
+
+def prepare_seed_test_results(
+    model_results: Mapping[str, ModelTestResults],
+) -> pd.DataFrame:
+    """Combine seed-level test metrics for all models."""
+
+    if not model_results:
+        raise ValueError("model_results must contain at least one model.")
+
+    data_frames = [results.seed_metrics for results in model_results.values()]
+
+    return (
+        pd.concat(
+            data_frames,
+            ignore_index=True,
+        )
+        .sort_values(
+            by=["Seed", "Model"],
+        )
+        .reset_index(drop=True)
+    )
+
+
+def prepare_test_summary(
+    seed_test_results: pd.DataFrame,
+    metric_directions: Mapping[str, bool],
+    sort_metric: str,
+) -> pd.DataFrame:
+    """Calculate mean and standard deviation across test seeds."""
+
+    metric_columns = list(metric_directions)
+
+    if sort_metric not in metric_directions:
+        raise ValueError(f"Unknown sort metric: {sort_metric}")
+
+    _require_columns(
+        seed_test_results,
+        ["Model", *metric_columns],
+        "seed_test_results",
+    )
+
+    summary = (
+        seed_test_results.groupby("Model")[metric_columns]
+        .agg(["mean", "std"])
+        .reset_index()
+    )
+
+    flattened_columns: list[str] = []
+
+    for column in summary.columns:
+        if isinstance(column, tuple):
+            first, second = column
+
+            flattened_columns.append(
+                str(first) if second == "" else f"{first} {second}"
+            )
+        else:
+            flattened_columns.append(str(column))
+
+    summary.columns = flattened_columns
+
+    return summary.sort_values(
+        by=f"{sort_metric} mean",
+        ascending=not metric_directions[sort_metric],
+    ).reset_index(drop=True)
+
+
+def prepare_test_summary_display(
+    summary: pd.DataFrame,
+    metric_directions: Mapping[str, bool],
+) -> pd.DataFrame:
+    """Prepare a human-readable cross-seed summary table."""
+
+    _require_columns(
+        summary,
+        [
+            "Model",
+            *[
+                column
+                for metric in metric_directions
+                for column in (
+                    f"{metric} mean",
+                    f"{metric} std",
+                )
+            ],
+        ],
+        "summary",
+    )
+
+    display_data = summary[["Model"]].copy()
+
+    for metric_name in metric_directions:
+        display_data[metric_name] = [
+            _format_mean_std(
+                float(mean_value),
+                float(std_value),
+            )
+            for mean_value, std_value in zip(
+                summary[f"{metric_name} mean"],
+                summary[f"{metric_name} std"],
+                strict=True,
+            )
+        ]
+
+    return display_data
+
+
+def display_seed_test_results(
+    data_frame: pd.DataFrame,
+    metric_directions: Mapping[str, bool],
+    caption: str = "Test Performance by Seed",
+) -> None:
+    """Display seed-level test metrics."""
+
+    format_mapping = {metric_name: "{:.4f}" for metric_name in metric_directions}
+
+    styled_data = _style_table(
+        data_frame,
+        caption=caption,
+        format_mapping=format_mapping,
+    ).apply(
+        _highlight_seed_metric_winners,
+        axis=None,
+        metric_directions=metric_directions,
+    )
+
+    display(styled_data)
+
+
 def display_test_summary(
     summary: pd.DataFrame,
-    caption: str = "Test Performance Across Five Seeds",
+    metric_directions: Mapping[str, bool],
+    caption: str = "Test Performance Across Seeds",
 ) -> None:
     """Display cross-seed model comparison."""
 
     display_data = prepare_test_summary_display(
         summary,
+        metric_directions,
     )
 
-    styled_data = (
-        display_data.style.hide(axis="index")
-        .set_caption(caption)
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-                {
-                    "selector": "td",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-            ]
-        )
-        .apply(
-            _highlight_best_summary_metrics,
-            axis=None,
-            summary=summary,
-        )
+    styled_data = _style_table(
+        display_data,
+        caption=caption,
+    ).apply(
+        _highlight_best_summary_metrics,
+        axis=None,
+        summary=summary,
+        metric_directions=metric_directions,
     )
 
     display(styled_data)
+
+
+# =============================================================================
+# Classification: per-age-group analysis
+# =============================================================================
 
 
 def prepare_per_age_group_test_metrics(
     model_results: Mapping[str, ModelTestResults],
     target_data_for_test: pd.Series,
 ) -> pd.DataFrame:
-    """Calculate per-age-group metrics across all model seeds."""
+    """Calculate per-age-group metrics across all classification seeds."""
 
-    rows = []
+    rows: list[dict[str, object]] = []
 
     for model_name, results in model_results.items():
+        if results.task != "classification":
+            raise ValueError(f"Model '{model_name}' is not a classification model.")
+
+        _validate_predictions_against_target(
+            results.predictions,
+            target_data_for_test,
+        )
+
         for seed, predictions in results.predictions.items():
             precision, recall, f1, support = precision_recall_fscore_support(
                 target_data_for_test,
@@ -378,22 +825,26 @@ def prepare_per_age_group_test_metrics(
                 support_value,
             ) in zip(
                 AGE_GROUP_ORDER,
-                precision,  # type: ignore
-                recall,  # type: ignore
-                f1,  # type: ignore
-                support,  # type: ignore
+                precision,
+                recall,
+                f1,
+                support,
+                strict=True,
             ):
                 rows.append(
                     {
                         "Model": model_name,
                         "Seed": seed,
                         "Age Group": age_group,
-                        "Precision": precision_value,
-                        "Recall": recall_value,
-                        "F1": f1_value,
-                        "Support": support_value,
+                        "Precision": float(precision_value),
+                        "Recall": float(recall_value),
+                        "F1": float(f1_value),
+                        "Support": int(support_value),
                     }
                 )
+
+    if not rows:
+        raise ValueError("No classification results were provided.")
 
     return pd.DataFrame(rows)
 
@@ -402,6 +853,19 @@ def prepare_per_age_group_summary(
     per_age_group_results: pd.DataFrame,
 ) -> pd.DataFrame:
     """Aggregate per-age-group metrics across seeds."""
+
+    _require_columns(
+        per_age_group_results,
+        [
+            "Model",
+            "Age Group",
+            "Precision",
+            "Recall",
+            "F1",
+            "Support",
+        ],
+        "per_age_group_results",
+    )
 
     summary = (
         per_age_group_results.groupby(
@@ -418,17 +882,16 @@ def prepare_per_age_group_summary(
             Support=("Support", "first"),
         )
         .reset_index()
-    )
-
-    summary = summary.rename(
-        columns={
-            "Precision_mean": "Precision mean",
-            "Precision_std": "Precision std",
-            "Recall_mean": "Recall mean",
-            "Recall_std": "Recall std",
-            "F1_mean": "F1 mean",
-            "F1_std": "F1 std",
-        }
+        .rename(
+            columns={
+                "Precision_mean": "Precision mean",
+                "Precision_std": "Precision std",
+                "Recall_mean": "Recall mean",
+                "Recall_std": "Recall std",
+                "F1_mean": "F1 mean",
+                "F1_std": "F1 std",
+            }
+        )
     )
 
     age_order = {age_group: index for index, age_group in enumerate(AGE_GROUP_ORDER)}
@@ -456,32 +919,35 @@ def prepare_per_age_group_display(
             "Support": summary["Support"],
             "Precision": [
                 _format_mean_std(
-                    mean_value,
-                    std_value,
+                    float(mean_value),
+                    float(std_value),
                 )
                 for mean_value, std_value in zip(
                     summary["Precision mean"],
                     summary["Precision std"],
+                    strict=True,
                 )
             ],
             "Recall": [
                 _format_mean_std(
-                    mean_value,
-                    std_value,
+                    float(mean_value),
+                    float(std_value),
                 )
                 for mean_value, std_value in zip(
                     summary["Recall mean"],
                     summary["Recall std"],
+                    strict=True,
                 )
             ],
             "F1": [
                 _format_mean_std(
-                    mean_value,
-                    std_value,
+                    float(mean_value),
+                    float(std_value),
                 )
                 for mean_value, std_value in zip(
                     summary["F1 mean"],
                     summary["F1 std"],
+                    strict=True,
                 )
             ],
         }
@@ -490,65 +956,60 @@ def prepare_per_age_group_display(
 
 def display_per_age_group_summary(
     summary: pd.DataFrame,
-    caption: str = "Per-Age-Group Test Performance Across Five Seeds",
+    caption: str = "Per-Age-Group Test Performance Across Seeds",
 ) -> None:
     """Display per-age-group model performance."""
 
-    display_data = prepare_per_age_group_display(
-        summary,
-    )
+    display_data = prepare_per_age_group_display(summary)
 
-    styled_data = (
-        display_data.style.hide(axis="index")
-        .set_caption(caption)
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-                {
-                    "selector": "td",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-            ]
+    display(
+        _style_table(
+            display_data,
+            caption=caption,
         )
     )
 
-    display(styled_data)
+
+# =============================================================================
+# Classification: confusion matrices
+# =============================================================================
 
 
 def prepare_mean_confusion_matrix(
     predictions: Mapping[int, pd.Series],
     target_data_for_test: pd.Series,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+]:
     """Calculate mean raw and row-normalized confusion matrices."""
 
-    raw_matrices = []
-    normalized_matrices = []
+    _validate_predictions_against_target(
+        predictions,
+        target_data_for_test,
+    )
 
-    for seed in predictions:
+    raw_matrices: list[npt.NDArray[np.float64]] = []
+    normalized_matrices: list[npt.NDArray[np.float64]] = []
+
+    for predicted_values in predictions.values():
         matrix = confusion_matrix(
             target_data_for_test,
-            predictions[seed],
+            predicted_values,
             labels=AGE_GROUP_ORDER,
+        ).astype(float)
+
+        raw_matrices.append(matrix)
+
+        row_sums = matrix.sum(
+            axis=1,
+            keepdims=True,
         )
-
-        raw_matrices.append(matrix.astype(float))
-
-        row_sums = matrix.sum(axis=1, keepdims=True)
 
         normalized_matrix = np.divide(
             matrix,
             row_sums,
-            out=np.zeros_like(
-                matrix,
-                dtype=float,
-            ),
+            out=np.zeros_like(matrix),
             where=row_sums != 0,
         )
 
@@ -574,7 +1035,7 @@ def prepare_mean_confusion_matrix(
 
 
 def prepare_confusion_matrix_table(
-    matrix: np.ndarray,
+    matrix: npt.NDArray[np.float64],
 ) -> pd.DataFrame:
     """Prepare a confusion matrix as a labeled DataFrame."""
 
@@ -586,43 +1047,27 @@ def prepare_confusion_matrix_table(
 
 
 def display_confusion_matrix_table(
-    matrix: np.ndarray,
+    matrix: npt.NDArray[np.float64],
     caption: str,
     percentage: bool = False,
 ) -> None:
     """Display a confusion matrix as an HTML table."""
 
-    display_data = prepare_confusion_matrix_table(
-        matrix,
-    ).copy()
+    display_data = prepare_confusion_matrix_table(matrix).copy()
 
     display_data.index.name = "Actual"
-
-    if percentage:
-        display_data = display_data.map(lambda value: f"{value:.1f}%")
-    else:
-        display_data = display_data.map(lambda value: f"{value:.2f}")
-
     display_data.columns.name = "Predicted"
 
-    styled_data = display_data.style.set_caption(caption).set_table_styles(
-        [
-            {
-                "selector": "th",
-                "props": [
-                    ("text-align", "center"),
-                ],
-            },
-            {
-                "selector": "td",
-                "props": [
-                    ("text-align", "center"),
-                ],
-            },
-        ]
-    )
+    format_string = "{:.1f}%" if percentage else "{:.2f}"
 
-    display(styled_data)
+    display(
+        _style_table(
+            display_data,
+            caption=caption,
+            format_mapping={column: format_string for column in display_data.columns},
+            hide_index=False,
+        )
+    )
 
 
 def plot_mean_confusion_matrix(
@@ -654,13 +1099,15 @@ def plot_mean_confusion_matrix(
         label="Percentage",
     )
 
+    positions = np.arange(len(AGE_GROUP_ORDER))
+
     axis.set_xticks(
-        np.arange(len(AGE_GROUP_ORDER)),
+        positions,
         AGE_GROUP_ORDER,
     )
 
     axis.set_yticks(
-        np.arange(len(AGE_GROUP_ORDER)),
+        positions,
         AGE_GROUP_ORDER,
     )
 
@@ -687,13 +1134,167 @@ def plot_mean_confusion_matrix(
     plt.show()
 
 
+# =============================================================================
+# Classification: distribution analysis
+# =============================================================================
+
+
+def prepare_prediction_distribution(
+    predictions: Mapping[int, pd.Series],
+    target_data_for_test: pd.Series,
+) -> pd.DataFrame:
+    """Calculate actual and predicted age-group distributions."""
+
+    _validate_predictions_against_target(
+        predictions,
+        target_data_for_test,
+    )
+
+    actual_counts = target_data_for_test.value_counts().reindex(
+        AGE_GROUP_ORDER,
+        fill_value=0,
+    )
+
+    predicted_counts: list[npt.NDArray[np.int64]] = []
+
+    for predictions_for_seed in predictions.values():
+        counts = predictions_for_seed.value_counts().reindex(
+            AGE_GROUP_ORDER,
+            fill_value=0,
+        )
+
+        predicted_counts.append(
+            counts.to_numpy(),
+        )
+
+    predicted_counts_array = np.vstack(
+        predicted_counts,
+    )
+
+    return pd.DataFrame(
+        {
+            "Age Group": AGE_GROUP_ORDER,
+            "Actual": actual_counts.to_numpy(),
+            "Predicted mean": predicted_counts_array.mean(axis=0),
+            "Predicted std": predicted_counts_array.std(axis=0),
+        }
+    )
+
+
+def plot_actual_vs_predicted_distribution(
+    model_results: Mapping[str, ModelTestResults],
+    target_data_for_test: pd.Series,
+    title: str = "Actual vs Predicted Age-Group Distribution",
+) -> None:
+    """Plot actual and mean predicted age-group counts."""
+
+    classification_results = {
+        model_name: results
+        for model_name, results in model_results.items()
+        if results.task == "classification"
+    }
+
+    if not classification_results:
+        raise ValueError("No classification results were provided.")
+
+    actual_counts = (
+        target_data_for_test.value_counts()
+        .reindex(
+            AGE_GROUP_ORDER,
+            fill_value=0,
+        )
+        .to_numpy()
+    )
+
+    model_names = list(classification_results)
+
+    number_of_series = len(model_names) + 1
+    bar_width = 0.8 / number_of_series
+
+    x_positions = np.arange(len(AGE_GROUP_ORDER))
+
+    figure, axis = plt.subplots(
+        figsize=(12, 6),
+    )
+
+    actual_offsets = x_positions - (number_of_series - 1) * bar_width / 2
+
+    axis.bar(
+        actual_offsets,
+        actual_counts,
+        width=bar_width,
+        color=PALETTE[0],
+        label="Actual",
+    )
+
+    for model_index, (
+        model_name,
+        results,
+    ) in enumerate(
+        classification_results.items(),
+        start=1,
+    ):
+        distribution = prepare_prediction_distribution(
+            results.predictions,
+            target_data_for_test,
+        )
+
+        offsets = (
+            x_positions
+            - (number_of_series - 1) * bar_width / 2
+            + model_index * bar_width
+        )
+
+        axis.bar(
+            offsets,
+            distribution["Predicted mean"],
+            width=bar_width,
+            yerr=distribution["Predicted std"],
+            capsize=4,
+            color=PALETTE[model_index % len(PALETTE)],
+            label=model_name,
+        )
+
+    axis.set_xticks(
+        x_positions,
+        AGE_GROUP_ORDER,
+    )
+
+    axis.set_xlabel("Age group")
+    axis.set_ylabel("Number of patients")
+    axis.set_title(title)
+    axis.legend()
+
+    figure.tight_layout()
+    plt.show()
+
+
+# =============================================================================
+# Classification: F1 plot
+# =============================================================================
+
+
 def plot_per_age_group_f1(
     per_age_group_summary: pd.DataFrame,
-    title: str = "Per-Age-Group F1 Across Five Seeds",
+    title: str = "Per-Age-Group F1 Across Seeds",
 ) -> None:
     """Plot mean F1 with standard deviation by age group."""
 
+    _require_columns(
+        per_age_group_summary,
+        [
+            "Model",
+            "Age Group",
+            "F1 mean",
+            "F1 std",
+        ],
+        "per_age_group_summary",
+    )
+
     models = list(per_age_group_summary["Model"].unique())
+
+    if not models:
+        raise ValueError("per_age_group_summary contains no models.")
 
     x_positions = np.arange(len(AGE_GROUP_ORDER))
 
@@ -719,7 +1320,7 @@ def plot_per_age_group_f1(
             yerr=model_data["F1 std"],
             capsize=4,
             label=model_name,
-            color=PALETTE[model_index],
+            color=PALETTE[model_index % len(PALETTE)],
         )
 
     axis.set_xticks(
@@ -728,7 +1329,6 @@ def plot_per_age_group_f1(
     )
 
     axis.set_ylim(0, 1)
-
     axis.set_xlabel("Age group")
     axis.set_ylabel("F1")
     axis.set_title(title)
@@ -738,392 +1338,195 @@ def plot_per_age_group_f1(
     plt.show()
 
 
-def prepare_prediction_distribution(
-    predictions: Mapping[int, pd.Series],
-    target_data_for_test: pd.Series,
-) -> pd.DataFrame:
-    """Calculate actual and predicted age-group distributions."""
-
-    actual_counts = target_data_for_test.value_counts().reindex(
-        AGE_GROUP_ORDER,
-        fill_value=0,
-    )
-
-    predicted_counts = []
-
-    for predictions_for_seed in predictions.values():
-        counts = predictions_for_seed.value_counts().reindex(
-            AGE_GROUP_ORDER,
-            fill_value=0,
-        )
-
-        predicted_counts.append(counts.to_numpy())
-
-    predicted_counts_array = np.vstack(predicted_counts)
-
-    return pd.DataFrame(
-        {
-            "Age Group": AGE_GROUP_ORDER,
-            "Actual": actual_counts.to_numpy(),
-            "Predicted mean": predicted_counts_array.mean(axis=0),
-            "Predicted std": predicted_counts_array.std(axis=0),
-        }
-    )
+# =============================================================================
+# Task dispatch
+# =============================================================================
 
 
-def plot_actual_vs_predicted_distribution(
+def _split_model_results_by_task(
     model_results: Mapping[str, ModelTestResults],
-    target_data_for_test: pd.Series,
-    title: str = "Actual vs Predicted Age-Group Distribution",
-) -> None:
-    """Plot actual and mean predicted age-group counts."""
+) -> tuple[
+    dict[str, ModelTestResults],
+    dict[str, ModelTestResults],
+]:
+    """Split model results according to their explicit task."""
 
-    actual_counts = (
-        target_data_for_test.value_counts()
-        .reindex(
-            AGE_GROUP_ORDER,
-            fill_value=0,
-        )
-        .to_numpy()
-    )
+    classification_results: dict[
+        str,
+        ModelTestResults,
+    ] = {}
 
-    model_names = list(model_results.keys())
+    regression_results: dict[
+        str,
+        ModelTestResults,
+    ] = {}
 
-    x_positions = np.arange(len(AGE_GROUP_ORDER))
+    for model_name, results in model_results.items():
+        if results.task == "classification":
+            classification_results[model_name] = results
+        elif results.task == "regression":
+            regression_results[model_name] = results
+        else:
+            raise ValueError(
+                f"Unsupported model task for '{model_name}': {results.task}"
+            )
 
-    number_of_series = len(model_names) + 1
-
-    bar_width = 0.8 / number_of_series
-
-    figure, axis = plt.subplots(
-        figsize=(12, 6),
-    )
-
-    actual_offsets = x_positions - (number_of_series - 1) * bar_width / 2
-
-    axis.bar(
-        actual_offsets,
-        actual_counts,
-        width=bar_width,
-        color=PALETTE[0],
-        label="Actual",
-    )
-
-    for model_index, (
-        model_name,
-        results,
-    ) in enumerate(
-        model_results.items(),
-        start=1,
-    ):
-        distribution = prepare_prediction_distribution(
-            results.predictions,
-            target_data_for_test,
-        )
-
-        offsets = (
-            x_positions
-            - (number_of_series - 1) * bar_width / 2
-            + model_index * bar_width
-        )
-
-        axis.bar(
-            offsets,
-            distribution["Predicted mean"],
-            width=bar_width,
-            yerr=distribution["Predicted std"],
-            capsize=4,
-            color=PALETTE[model_index],
-            label=model_name,
-        )
-
-    axis.set_xticks(
-        x_positions,
-        AGE_GROUP_ORDER,
-    )
-
-    axis.set_xlabel("Age group")
-    axis.set_ylabel("Number of patients")
-    axis.set_title(title)
-    axis.legend()
-
-    figure.tight_layout()
-    plt.show()
+    return classification_results, regression_results
 
 
-def prepare_model_agreement(
-    first_model_results: ModelTestResults,
-    second_model_results: ModelTestResults,
-    target_data_for_test: pd.Series,
-) -> pd.DataFrame:
-    """Measure prediction agreement between two models."""
-
-    first_model_name = first_model_results.model_name
-    second_model_name = second_model_results.model_name
-
-    rows = []
-
-    common_seeds = sorted(
-        set(first_model_results.predictions) & set(second_model_results.predictions)
-    )
-
-    for age_group in AGE_GROUP_ORDER:
-        total_predictions = 0
-        same_predictions = 0
-
-        age_mask = target_data_for_test == age_group
-
-        for seed in common_seeds:
-            first_predictions = first_model_results.predictions[seed]
-
-            second_predictions = second_model_results.predictions[seed]
-
-            same_mask = first_predictions == second_predictions
-
-            combined_mask = age_mask & same_mask
-
-            same_predictions += int(combined_mask.sum())
-
-            total_predictions += int(age_mask.sum())
-
-        agreement_percentage = (
-            same_predictions / total_predictions * 100 if total_predictions > 0 else 0.0
-        )
-
-        rows.append(
-            {
-                "Age Group": age_group,
-                "Support": int(age_mask.sum()),
-                "Same Prediction (%)": (agreement_percentage),
-                "Different Prediction (%)": (100 - agreement_percentage),
-            }
-        )
-
-    result = pd.DataFrame(rows)
-
-    result.attrs["first_model"] = first_model_name
-    result.attrs["second_model"] = second_model_name
-
-    return result
-
-
-def display_model_agreement(
-    agreement: pd.DataFrame,
-    caption: str = "Decision Tree vs Random Forest Prediction Agreement",
-) -> None:
-    """Display model prediction agreement."""
-
-    styled_data = (
-        agreement.style.hide(axis="index")
-        .format(
-            {
-                "Same Prediction (%)": "{:.1f}",
-                "Different Prediction (%)": "{:.1f}",
-            }
-        )
-        .set_caption(caption)
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-                {
-                    "selector": "td",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-            ]
-        )
-    )
-
-    display(styled_data)
-
-
-def _extract_feature_importances(
-    model: BaseEstimator,
-    feature_names: list[str],
-) -> pd.Series:
-    """Extract feature importances from a fitted model or pipeline."""
-
-    estimator = model
-
-    # Your models use a pipeline with a classifier step.
-    if hasattr(model, "named_steps") and "classifier" in model.named_steps:  # type: ignore
-        estimator = model.named_steps["classifier"]  # type: ignore
-
-    if not hasattr(estimator, "feature_importances_"):
-        raise ValueError(
-            f"{type(estimator).__name__} does not provide `feature_importances_`."
-        )
-
-    importances = np.asarray(
-        estimator.feature_importances_,  # type: ignore
-        dtype=float,
-    )
-
-    if len(importances) != len(feature_names):
-        raise ValueError(
-            "The number of feature names does not match the number "
-            f"of feature importances: {len(feature_names)} != {len(importances)}."
-        )
-
-    return pd.Series(
-        importances,
-        index=feature_names,
-        name="Importance",
-    ).sort_values(ascending=False)
-
-
-def display_feature_importance(
-    results: ModelTestResults,
-    caption: str = "Feature Importance Across Five Seeds",
-) -> None:
-    """Display mean feature importance across model seeds."""
-
-    importance_data = pd.concat(
-        results.feature_importances,
-        axis=1,
-    )
-
-    summary = (
-        pd.DataFrame(
-            {
-                "Feature": importance_data.index,
-                "Importance mean": importance_data.mean(axis=1),
-                "Importance std": importance_data.std(axis=1),
-            }
-        )
-        .sort_values(
-            by="Importance mean",
-            ascending=False,
-        )
-        .reset_index(drop=True)
-    )
-
-    display_data = pd.DataFrame(
-        {
-            "Feature": summary["Feature"],
-            "Importance": [
-                _format_mean_std(
-                    mean_value,
-                    std_value,
-                )
-                for mean_value, std_value in zip(
-                    summary["Importance mean"],
-                    summary["Importance std"],
-                )
-            ],
-        }
-    )
-
-    styled_data = (
-        display_data.style.hide(axis="index")
-        .set_caption(
-            caption,
-        )
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-                {
-                    "selector": "td",
-                    "props": [
-                        ("text-align", "center"),
-                    ],
-                },
-            ]
-        )
-    )
-
-    display(styled_data)
+# =============================================================================
+# Complete report
+# =============================================================================
 
 
 def display_complete_test_report(
     model_results: Mapping[str, ModelTestResults],
-    target_data_for_test: pd.Series,
+    classification_target_data_for_test: pd.Series,
+    regression_target_data_for_test: pd.Series,
 ) -> None:
-    """Display the complete test-result table set."""
+    """Display the complete test-result tables for all model types."""
 
-    seed_results = prepare_seed_test_results(
-        model_results,
-    )
+    if not model_results:
+        raise ValueError("model_results must contain at least one model.")
 
-    display_seed_test_results(
-        seed_results,
-    )
+    (
+        classification_results,
+        regression_results,
+    ) = _split_model_results_by_task(model_results)
 
-    summary = prepare_test_summary(
-        seed_results,
-    )
+    # -------------------------------------------------------------------------
+    # Classification
+    # -------------------------------------------------------------------------
 
-    display_test_summary(
-        summary,
-    )
+    if classification_results:
+        classification_seed_results = prepare_seed_test_results(
+            classification_results,
+        )
 
-    per_age_group_results = prepare_per_age_group_test_metrics(
-        model_results,
-        target_data_for_test,
-    )
+        display_seed_test_results(
+            classification_seed_results,
+            metric_directions=CLASSIFICATION_TEST_METRICS,
+            caption="Classification Test Performance by Seed",
+        )
 
-    per_age_group_summary = prepare_per_age_group_summary(
-        per_age_group_results,
-    )
+        classification_summary = prepare_test_summary(
+            classification_seed_results,
+            metric_directions=CLASSIFICATION_TEST_METRICS,
+            sort_metric="Macro F1",
+        )
 
-    display_per_age_group_summary(
-        per_age_group_summary,
-    )
+        display_test_summary(
+            classification_summary,
+            metric_directions=CLASSIFICATION_TEST_METRICS,
+            caption="Classification Test Performance Across Seeds",
+        )
+
+        per_age_group_results = prepare_per_age_group_test_metrics(
+            classification_results,
+            classification_target_data_for_test,
+        )
+
+        per_age_group_summary = prepare_per_age_group_summary(
+            per_age_group_results,
+        )
+
+        display_per_age_group_summary(
+            per_age_group_summary,
+        )
+
+        for model_name, results in classification_results.items():
+            raw_matrix, normalized_matrix = prepare_mean_confusion_matrix(
+                results.predictions,
+                classification_target_data_for_test,
+            )
+
+            display_confusion_matrix_table(
+                raw_matrix,
+                caption=(f"{model_name} — Mean Confusion Matrix"),
+            )
+
+            display_confusion_matrix_table(
+                normalized_matrix,
+                caption=(f"{model_name} — Mean Row-Normalized Confusion Matrix"),
+                percentage=True,
+            )
+
+    # -------------------------------------------------------------------------
+    # Regression
+    # -------------------------------------------------------------------------
+
+    if regression_results:
+        regression_seed_results = prepare_seed_test_results(
+            regression_results,
+        )
+
+        display_seed_test_results(
+            regression_seed_results,
+            metric_directions=REGRESSION_TEST_METRICS,
+            caption="Regression Test Performance by Seed",
+        )
+
+        regression_summary = prepare_test_summary(
+            regression_seed_results,
+            metric_directions=REGRESSION_TEST_METRICS,
+            sort_metric="MAE",
+        )
+
+        display_test_summary(
+            regression_summary,
+            metric_directions=REGRESSION_TEST_METRICS,
+            caption="Regression Test Performance Across Seeds",
+        )
+
+        # Keep the regression target explicit even though the generic
+        # summary functions do not need it.
+        if regression_target_data_for_test.empty:
+            raise ValueError("regression_target_data_for_test must not be empty.")
+
+    # -------------------------------------------------------------------------
+    # Feature importance
+    # -------------------------------------------------------------------------
 
     for model_name, results in model_results.items():
-        raw_matrix, normalized_matrix = prepare_mean_confusion_matrix(
-            results.predictions,
-            target_data_for_test,
-        )
-
-        display_confusion_matrix_table(
-            raw_matrix,
-            caption=(f"{model_name} — Mean Confusion Matrix"),
-        )
-
-        display_confusion_matrix_table(
-            normalized_matrix,
-            caption=(f"{model_name} — Mean Row-Normalized Confusion Matrix"),
-            percentage=True,
-        )
-
         display_feature_importance(
             results,
             caption=f"{model_name} — Feature Importances",
         )
 
 
+# =============================================================================
+# Complete plots
+# =============================================================================
+
+
 def plot_complete_test_report(
     model_results: Mapping[str, ModelTestResults],
-    target_data_for_test: pd.Series,
+    classification_target_data_for_test: pd.Series,
     per_age_group_summary: pd.DataFrame,
 ) -> None:
-    """Plot the main test-result figures."""
+    """Plot the main classification test-result figures."""
 
-    for model_name, results in model_results.items():
+    (
+        classification_results,
+        _,
+    ) = _split_model_results_by_task(model_results)
+
+    if not classification_results:
+        return
+
+    for model_name, results in classification_results.items():
         plot_mean_confusion_matrix(
             results.predictions,
-            target_data_for_test,
+            classification_target_data_for_test,
             title=(f"{model_name} — Mean Row-Normalized Confusion Matrix"),
         )
 
     plot_per_age_group_f1(
         per_age_group_summary,
-        title="Per-Age-Group F1 Across Five Seeds",
+        title="Per-Age-Group F1 Across Seeds",
     )
 
     plot_actual_vs_predicted_distribution(
-        model_results,
-        target_data_for_test,
+        classification_results,
+        classification_target_data_for_test,
     )

@@ -1,10 +1,6 @@
 from helper_for_test import (
-    prepare_model_agreement,
-    prepare_per_age_group_summary,
-    prepare_per_age_group_test_metrics,
-    prepare_seed_test_results,
-    prepare_test_summary,
-    run_model_test_evaluation,
+    run_classification_model_test_evaluation,
+    run_regression_model_test_evaluation,
 )
 from pipelines import (
     _build_decision_tree_pipeline,
@@ -20,18 +16,19 @@ from pipelines import (
     regression_target_data_for_train,
     seeds,
 )
+from validation_import import (
+    best_parameters_for_decision_tree_with_smote,
+    best_parameters_for_decision_tree_without_smote,
+    best_parameters_for_gradient_boost,
+    best_parameters_for_random_forest_with_smote,
+    best_parameters_for_random_forest_without_smote,
+)
 
 # ---------------------------------------------------------------------------
 # Decision Tree
 # ---------------------------------------------------------------------------
 
-best_parameters_for_decision_tree_without_smote = {
-    "classifier__criterion": "entropy",
-    "classifier__max_depth": None,
-    "classifier__min_samples_leaf": 1,
-    "classifier__min_samples_split": 10,
-}
-decision_tree_without_smote_test_results = run_model_test_evaluation(
+decision_tree_without_smote_test_results = run_classification_model_test_evaluation(
     model_name="Decision Tree without SMOTE",
     model_factory=lambda random_state: _build_decision_tree_pipeline(
         random_state=random_state,
@@ -45,14 +42,7 @@ decision_tree_without_smote_test_results = run_model_test_evaluation(
     seeds=seeds,
 )
 
-best_parameters_for_decision_tree_with_smote = {
-    "classifier__criterion": "gini",
-    "classifier__max_depth": 7,
-    "classifier__min_samples_leaf": 2,
-    "classifier__min_samples_split": 10,
-}
-
-decision_tree_with_smote_test_results = run_model_test_evaluation(
+decision_tree_with_smote_test_results = run_classification_model_test_evaluation(
     model_name="Decision Tree with SMOTE",
     model_factory=lambda random_state: _build_decision_tree_pipeline(
         random_state=random_state,
@@ -71,15 +61,7 @@ decision_tree_with_smote_test_results = run_model_test_evaluation(
 # Random Forest
 # ---------------------------------------------------------------------------
 
-best_parameters_for_random_forest_without_smote = {
-    "classifier__criterion": "entropy",
-    "classifier__max_depth": 10,
-    "classifier__max_features": "log2",
-    "classifier__min_samples_leaf": 1,
-    "classifier__min_samples_split": 5,
-    "classifier__n_estimators": 300,
-}
-random_forest_without_smote_test_results = run_model_test_evaluation(
+random_forest_without_smote_test_results = run_classification_model_test_evaluation(
     model_name="Random Forest without SMOTE",
     model_factory=lambda random_state: _build_random_forest_pipeline(
         random_state=random_state,
@@ -93,15 +75,7 @@ random_forest_without_smote_test_results = run_model_test_evaluation(
     seeds=seeds,
 )
 
-best_parameters_for_random_forest_with_smote = {
-    "classifier__criterion": "entropy",
-    "classifier__max_depth": None,
-    "classifier__max_features": "log2",
-    "classifier__min_samples_leaf": 2,
-    "classifier__min_samples_split": 2,
-    "classifier__n_estimators": 200,
-}
-random_forest_with_smote_test_results = run_model_test_evaluation(
+random_forest_with_smote_test_results = run_classification_model_test_evaluation(
     model_name="Random Forest with SMOTE",
     model_factory=lambda random_state: _build_random_forest_pipeline(
         random_state=random_state,
@@ -120,15 +94,7 @@ random_forest_with_smote_test_results = run_model_test_evaluation(
 # Gradient Boost
 # ---------------------------------------------------------------------------
 
-best_parameters_for_gradient_boost = {
-    "classifier__criterion": "entropy",
-    "classifier__max_depth": 10,
-    "classifier__max_features": "log2",
-    "classifier__min_samples_leaf": 1,
-    "classifier__min_samples_split": 5,
-    "classifier__n_estimators": 300,
-}
-gradient_boost_test_results = run_model_test_evaluation(
+gradient_boost_test_results = run_regression_model_test_evaluation(
     model_name="Gradient Boost",
     model_factory=lambda random_state: _build_gradient_boost_pipeline(
         random_state=random_state,
@@ -146,33 +112,13 @@ gradient_boost_test_results = run_model_test_evaluation(
 # Comparison
 # ---------------------------------------------------------------------------
 
-model_results = {
+classification_model_results = {
     "Decision Tree without SMOTE": decision_tree_without_smote_test_results,
     "Decision Tree with SMOTE": decision_tree_with_smote_test_results,
     "Random Forest without SMOTE": random_forest_without_smote_test_results,
     "Random Forest with SMOTE": random_forest_with_smote_test_results,
+}
+regression_model_results = {
     "Gradient Boost": gradient_boost_test_results,
 }
-
-seed_test_results = prepare_seed_test_results(
-    model_results,
-)
-
-test_summary = prepare_test_summary(seed_test_results)
-
-per_age_group_results = prepare_per_age_group_test_metrics(
-    model_results,
-    classification_target_data_for_test,
-)
-
-per_age_group_summary = prepare_per_age_group_summary(
-    per_age_group_results,
-)
-
-# # Model-agreement analysis.
-
-agreement_between_models = prepare_model_agreement(
-    decision_tree_with_smote_test_results,
-    random_forest_with_smote_test_results,
-    classification_target_data_for_test,
-)
+model_results = {**classification_model_results, **regression_model_results}
