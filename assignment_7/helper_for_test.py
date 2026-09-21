@@ -22,21 +22,13 @@ from sklearn.metrics import (
     r2_score,
 )
 
-from helper_for_analysis import PALETTE
+from features import AGE_GROUP_ORDER, group_age
+from helper_for_analysis import DEFAULT_COLOR, PALETTE
 
 # =============================================================================
 # Constants
 # =============================================================================
 
-AGE_GROUP_ORDER: tuple[str, ...] = (
-    "10-19",
-    "20-29",
-    "30-39",
-    "40-49",
-    "50-59",
-    "60-69",
-    "70+",
-)
 
 CLASSIFICATION_TEST_METRICS: dict[str, bool] = {
     "Accuracy": True,
@@ -179,9 +171,9 @@ def _style_table(
         styled_data = styled_data.hide(axis="index")
 
     if format_mapping is not None:
-        styled_data = styled_data.format(format_mapping)
+        styled_data = styled_data.format(format_mapping)  # type: ignore
 
-    return styled_data.set_caption(caption).set_table_styles(TABLE_STYLES)
+    return styled_data.set_caption(caption).set_table_styles(TABLE_STYLES)  # type: ignore
 
 
 def _highlight_seed_metric_winners(
@@ -272,7 +264,7 @@ def _extract_model_feature_names(
     if not hasattr(model, "named_steps"):
         raise ValueError("The model must be a fitted pipeline.")
 
-    named_steps = model.named_steps
+    named_steps = model.named_steps  # type: ignore
 
     original_feature_names = getattr(
         model,
@@ -348,7 +340,7 @@ def _extract_feature_importances(
         dtype=float,
     )
 
-    feature_names = _extract_model_feature_names(model)
+    feature_names = _extract_model_feature_names(model)  # type: ignore
 
     if len(importances) != len(feature_names):
         raise ValueError(
@@ -461,7 +453,7 @@ def _calculate_classification_metrics(
             average="macro",
             zero_division=0,
         ),
-    }
+    }  # type: ignore
 
 
 def _calculate_regression_metrics(
@@ -792,6 +784,37 @@ def display_test_summary(
 # =============================================================================
 
 
+def _convert_predictions_to_age_groups(
+    results: ModelTestResults,
+    predictions: pd.Series,
+) -> pd.Series:
+    """Convert model predictions to the common ordered age-group representation."""
+
+    if results.task == "classification":
+        age_groups = predictions
+
+    elif results.task == "regression":
+        age_groups = group_age(
+            pd.to_numeric(
+                predictions,
+                errors="raise",
+            )
+        )
+
+    else:
+        raise ValueError(f"Unsupported model task: {results.task}")
+
+    return pd.Series(
+        pd.Categorical(
+            age_groups,
+            categories=AGE_GROUP_ORDER,
+            ordered=True,
+        ),
+        index=predictions.index,
+        name="prediction",
+    )
+
+
 def prepare_per_age_group_test_metrics(
     model_results: Mapping[str, ModelTestResults],
     target_data_for_test: pd.Series,
@@ -825,10 +848,10 @@ def prepare_per_age_group_test_metrics(
                 support_value,
             ) in zip(
                 AGE_GROUP_ORDER,
-                precision,
-                recall,
-                f1,
-                support,
+                precision,  # type: ignore
+                recall,  # type: ignore
+                f1,  # type: ignore
+                support,  # type: ignore
                 strict=True,
             ):
                 rows.append(
@@ -976,26 +999,39 @@ def display_per_age_group_summary(
 
 
 def prepare_mean_confusion_matrix(
-    predictions: Mapping[int, pd.Series],
+    results: ModelTestResults,
     target_data_for_test: pd.Series,
-) -> tuple[
-    npt.NDArray[np.float64],
-    npt.NDArray[np.float64],
-]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Calculate mean raw and row-normalized confusion matrices."""
 
-    _validate_predictions_against_target(
-        predictions,
-        target_data_for_test,
+    if not results.predictions:
+        raise ValueError(f"Model '{results.model_name}' has no predictions.")
+
+    # The actual target is always numeric age for this analysis.
+    actual_age_groups = group_age(
+        pd.to_numeric(
+            target_data_for_test,
+            errors="raise",
+        )
     )
 
-    raw_matrices: list[npt.NDArray[np.float64]] = []
-    normalized_matrices: list[npt.NDArray[np.float64]] = []
+    raw_matrices: list[np.ndarray] = []
+    normalized_matrices: list[np.ndarray] = []
 
-    for predicted_values in predictions.values():
+    for predictions in results.predictions.values():
+        predicted_age_groups = _convert_predictions_to_age_groups(
+            results,
+            predictions,
+        )
+
+        if not predicted_age_groups.index.equals(actual_age_groups.index):
+            raise ValueError(
+                "Prediction index does not match the target test-set index."
+            )
+
         matrix = confusion_matrix(
-            target_data_for_test,
-            predicted_values,
+            actual_age_groups,
+            predicted_age_groups,
             labels=AGE_GROUP_ORDER,
         ).astype(float)
 
@@ -1071,14 +1107,14 @@ def display_confusion_matrix_table(
 
 
 def plot_mean_confusion_matrix(
-    predictions: Mapping[int, pd.Series],
+    results: ModelTestResults,
     target_data_for_test: pd.Series,
     title: str,
 ) -> None:
-    """Plot the mean row-normalized confusion matrix."""
+    """Plot the mean row-normalized age-group confusion matrix."""
 
     _, normalized_matrix = prepare_mean_confusion_matrix(
-        predictions,
+        results,
         target_data_for_test,
     )
 
@@ -1140,36 +1176,42 @@ def plot_mean_confusion_matrix(
 
 
 def prepare_prediction_distribution(
-    predictions: Mapping[int, pd.Series],
+    results: ModelTestResults,
     target_data_for_test: pd.Series,
 ) -> pd.DataFrame:
     """Calculate actual and predicted age-group distributions."""
 
-    _validate_predictions_against_target(
-        predictions,
-        target_data_for_test,
+    actual_age_groups = group_age(
+        pd.to_numeric(
+            target_data_for_test,
+            errors="raise",
+        )
     )
 
-    actual_counts = target_data_for_test.value_counts().reindex(
+    actual_counts = actual_age_groups.value_counts().reindex(
         AGE_GROUP_ORDER,
         fill_value=0,
     )
 
-    predicted_counts: list[npt.NDArray[np.int64]] = []
+    predicted_counts: list[np.ndarray] = []
 
-    for predictions_for_seed in predictions.values():
-        counts = predictions_for_seed.value_counts().reindex(
+    for predictions_for_seed in results.predictions.values():
+        predicted_age_groups = _convert_predictions_to_age_groups(
+            results,
+            predictions_for_seed,
+        )
+
+        counts = predicted_age_groups.value_counts().reindex(
             AGE_GROUP_ORDER,
             fill_value=0,
         )
 
-        predicted_counts.append(
-            counts.to_numpy(),
-        )
+        predicted_counts.append(counts.to_numpy())
 
-    predicted_counts_array = np.vstack(
-        predicted_counts,
-    )
+    if not predicted_counts:
+        raise ValueError(f"Model '{results.model_name}' has no predictions.")
+
+    predicted_counts_array = np.vstack(predicted_counts)
 
     return pd.DataFrame(
         {
@@ -1188,30 +1230,32 @@ def plot_actual_vs_predicted_distribution(
 ) -> None:
     """Plot actual and mean predicted age-group counts."""
 
-    classification_results = {
-        model_name: results
-        for model_name, results in model_results.items()
-        if results.task == "classification"
-    }
+    if not model_results:
+        raise ValueError("model_results must contain at least one model.")
 
-    if not classification_results:
-        raise ValueError("No classification results were provided.")
+    model_names = list(model_results)
+
+    number_of_series = len(model_names) + 1
+    bar_width = 0.8 / number_of_series
+
+    x_positions = np.arange(len(AGE_GROUP_ORDER))
+
+    # The actual test target is always numeric age.
+    actual_age_groups = group_age(
+        pd.to_numeric(
+            target_data_for_test,
+            errors="raise",
+        )
+    )
 
     actual_counts = (
-        target_data_for_test.value_counts()
+        actual_age_groups.value_counts()
         .reindex(
             AGE_GROUP_ORDER,
             fill_value=0,
         )
         .to_numpy()
     )
-
-    model_names = list(classification_results)
-
-    number_of_series = len(model_names) + 1
-    bar_width = 0.8 / number_of_series
-
-    x_positions = np.arange(len(AGE_GROUP_ORDER))
 
     figure, axis = plt.subplots(
         figsize=(12, 6),
@@ -1231,11 +1275,11 @@ def plot_actual_vs_predicted_distribution(
         model_name,
         results,
     ) in enumerate(
-        classification_results.items(),
+        model_results.items(),
         start=1,
     ):
         distribution = prepare_prediction_distribution(
-            results.predictions,
+            results,
             target_data_for_test,
         )
 
@@ -1264,6 +1308,135 @@ def plot_actual_vs_predicted_distribution(
     axis.set_ylabel("Number of patients")
     axis.set_title(title)
     axis.legend()
+
+    figure.tight_layout()
+    plt.show()
+
+
+def plot_actual_vs_predicted_age(
+    results: ModelTestResults,
+    target_data_for_test: pd.Series,
+) -> None:
+    """Plot predicted age against actual age for a regression model."""
+
+    if results.task != "regression":
+        raise ValueError(f"Model '{results.model_name}' is not a regression model.")
+
+    actual_age = pd.to_numeric(
+        target_data_for_test,
+        errors="raise",
+    )
+
+    prediction_data = []
+
+    for predictions in results.predictions.values():
+        prediction_data.append(
+            pd.to_numeric(
+                predictions,
+                errors="raise",
+            ).to_numpy()
+        )
+
+    predicted_age = np.vstack(prediction_data)
+
+    # Mean prediction across seeds.
+    mean_predicted_age = predicted_age.mean(axis=0)
+
+    # Use the complete actual-age range for both axes.
+    minimum_age = float(actual_age.min())
+    maximum_age = float(actual_age.max())
+
+    figure, axis = plt.subplots(
+        figsize=(8, 7),
+    )
+
+    axis.scatter(
+        actual_age,
+        mean_predicted_age,
+        alpha=0.7,
+        color=DEFAULT_COLOR,
+    )
+
+    axis.plot(
+        [minimum_age, maximum_age],
+        [minimum_age, maximum_age],
+        linestyle="--",
+    )
+
+    axis.set_xlim(
+        minimum_age,
+        maximum_age,
+    )
+
+    axis.set_ylim(
+        minimum_age,
+        maximum_age,
+    )
+
+    axis.set_xlabel("Actual age")
+    axis.set_ylabel("Predicted age")
+
+    axis.set_title(f"{results.model_name} — Actual vs Predicted Age")
+
+    axis.grid(
+        alpha=0.2,
+    )
+
+    figure.tight_layout()
+    plt.show()
+
+
+def plot_age_residuals(
+    results: ModelTestResults,
+    target_data_for_test: pd.Series,
+) -> None:
+    """Plot regression residuals against actual age."""
+
+    if results.task != "regression":
+        raise ValueError(f"Model '{results.model_name}' is not a regression model.")
+
+    actual_age = pd.to_numeric(
+        target_data_for_test,
+        errors="raise",
+    )
+
+    predictions = np.vstack(
+        [
+            pd.to_numeric(
+                seed_predictions,
+                errors="raise",
+            ).to_numpy()
+            for seed_predictions in results.predictions.values()
+        ]
+    )
+
+    mean_predicted_age = predictions.mean(axis=0)
+
+    residuals = mean_predicted_age - actual_age.to_numpy()
+
+    figure, axis = plt.subplots(
+        figsize=(9, 6),
+    )
+
+    axis.scatter(
+        actual_age,
+        residuals,
+        alpha=0.7,
+        color=DEFAULT_COLOR,
+    )
+
+    axis.axhline(
+        0,
+        linestyle="--",
+    )
+
+    axis.set_xlabel("Actual age")
+    axis.set_ylabel("Residual (predicted − actual)")
+    axis.set_title(f"{results.model_name} — Residuals vs Actual Age")
+
+    axis.grid(
+        alpha=0.2,
+    )
 
     figure.tight_layout()
     plt.show()
@@ -1436,8 +1609,8 @@ def display_complete_test_report(
 
         for model_name, results in classification_results.items():
             raw_matrix, normalized_matrix = prepare_mean_confusion_matrix(
-                results.predictions,
-                classification_target_data_for_test,
+                results,
+                regression_target_data_for_test,
             )
 
             display_confusion_matrix_table(
@@ -1501,23 +1674,15 @@ def display_complete_test_report(
 
 def plot_complete_test_report(
     model_results: Mapping[str, ModelTestResults],
-    classification_target_data_for_test: pd.Series,
+    regression_target_data_for_test: pd.Series,
     per_age_group_summary: pd.DataFrame,
 ) -> None:
     """Plot the main classification test-result figures."""
 
-    (
-        classification_results,
-        _,
-    ) = _split_model_results_by_task(model_results)
-
-    if not classification_results:
-        return
-
-    for model_name, results in classification_results.items():
+    for model_name, results in model_results.items():
         plot_mean_confusion_matrix(
-            results.predictions,
-            classification_target_data_for_test,
+            results,
+            regression_target_data_for_test,
             title=(f"{model_name} — Mean Row-Normalized Confusion Matrix"),
         )
 
@@ -1527,6 +1692,6 @@ def plot_complete_test_report(
     )
 
     plot_actual_vs_predicted_distribution(
-        classification_results,
-        classification_target_data_for_test,
+        model_results,
+        regression_target_data_for_test,
     )

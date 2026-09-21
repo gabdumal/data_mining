@@ -181,9 +181,9 @@ def run_grid_searches_for_random_forest(
 param_grid_of_random_forest = {
     "classifier__n_estimators": [100, 200, 300],
     "classifier__criterion": ["gini", "entropy"],
-    "classifier__max_depth": [5, 10, None],
-    "classifier__min_samples_split": [2, 5],
-    "classifier__min_samples_leaf": [1, 2],
+    "classifier__max_depth": [3, 5, 7],
+    "classifier__min_samples_split": [2, 5, 10],
+    "classifier__min_samples_leaf": [1, 2, 3],
     "classifier__max_features": ["sqrt", "log2"],
 }
 

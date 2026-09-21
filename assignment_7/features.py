@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, get_args
 
+import numpy as np
+import pandas as pd
+
 # Data on JSON
 
 
@@ -195,6 +198,63 @@ AgeGroup = Literal[
     "70+",
 ]
 age_groups = get_args(AgeGroup)
+
+AGE_GROUP_ORDER: tuple[str, ...] = (
+    "10-19",
+    "20-29",
+    "30-39",
+    "40-49",
+    "50-59",
+    "60-69",
+    "70+",
+)
+AGE_GROUP_BINS: tuple[float, ...] = (
+    10.0,
+    20.0,
+    30.0,
+    40.0,
+    50.0,
+    60.0,
+    70.0,
+    np.inf,
+)
+
+
+def group_age(
+    age: pd.Series,
+) -> pd.Series:
+    """Convert ages into the project's ordered age groups."""
+
+    if age.empty:
+        raise ValueError("age must contain at least one value.")
+
+    grouped_age = pd.cut(
+        age,
+        bins=list(AGE_GROUP_BINS),
+        labels=list(AGE_GROUP_ORDER),
+        right=False,
+        include_lowest=True,
+    )
+
+    if grouped_age.isna().any():
+        invalid_values = age[grouped_age.isna()]
+
+        raise ValueError(
+            "Age values could not be assigned to an age group. "
+            f"Invalid values: {invalid_values.tolist()}"
+        )
+
+    result = pd.Series(
+        pd.Categorical(
+            grouped_age,
+            categories=AGE_GROUP_ORDER,
+            ordered=True,
+        ),
+        index=age.index,
+        name="age_group",
+    )
+
+    return result
 
 
 # Features

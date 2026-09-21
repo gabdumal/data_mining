@@ -1,9 +1,9 @@
 import pandas as pd
 
 from features import (
-    age_groups,
     format_mouth_condition,
     format_sex,
+    group_age,
     mouth_conditions,
     sexes,
 )
@@ -25,27 +25,7 @@ df["mouth_condition"] = pd.Categorical(
 )
 
 # Transform age into ranges
-df["age_group"] = pd.cut(
-    df["age"],
-    bins=[
-        10,
-        20,
-        30,
-        40,
-        50,
-        60,
-        70,
-        float("inf"),
-    ],
-    labels=age_groups,
-    right=False,
-    include_lowest=True,
-)
-df["age_group"] = pd.Categorical(
-    df["age_group"],
-    categories=age_groups,
-    ordered=True,
-)
+df["age_group"] = group_age(df["age"])
 
 
 # Remove features that do not have relevant amount of values different from 0

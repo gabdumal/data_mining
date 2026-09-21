@@ -176,7 +176,6 @@ def _split_data(
 )
 
 regression_input_data_for_train = classification_input_data_for_train.copy()
-
 regression_input_data_for_test = classification_input_data_for_test.copy()
 
 
