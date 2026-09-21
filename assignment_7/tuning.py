@@ -1,10 +1,12 @@
 from sklearn.model_selection import (
     GridSearchCV,
+    KFold,
     StratifiedKFold,
 )
 
 from pipelines import (
     _build_decision_tree_pipeline,
+    _build_gradient_boost_pipeline,
     _build_random_forest_pipeline,
     seed,
 )
@@ -128,6 +130,71 @@ def run_grid_searches_for_random_forest(
             random_state=current_seed,
             param_grid=param_grid,
             use_smote=use_smote,
+        )
+
+        grid_search.fit(
+            input_data,
+            target_data,
+        )
+
+        grid_searches[current_seed] = grid_search
+
+    return grid_searches
+
+
+# ---------------------------------------------------------------------------*
+# Gradient Boost
+# ---------------------------------------------------------------------------*
+
+
+def _build_grid_search_for_gradient_boost(
+    random_state: int,
+    param_grid,
+):
+    """Build a GridSearchCV for the Gradient Boosting regression pipeline."""
+
+    pipeline = _build_gradient_boost_pipeline(
+        random_state=random_state,
+    )
+
+    cross_validation = KFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=random_state,
+    )
+
+    scoring = {
+        "mae": "neg_mean_absolute_error",
+        "rmse": "neg_root_mean_squared_error",
+        "r2": "r2",
+    }
+
+    return GridSearchCV(
+        estimator=pipeline,
+        param_grid=param_grid,
+        scoring=scoring,
+        refit="mae",
+        cv=cross_validation,
+        n_jobs=-1,
+        return_train_score=False,
+        error_score="raise",
+    )
+
+
+def run_grid_searches_for_gradient_boost(
+    input_data,
+    target_data,
+    seeds,
+    param_grid,
+):
+    """Run Gradient Boosting GridSearchCV for multiple CV seeds."""
+
+    grid_searches = {}
+
+    for current_seed in seeds:
+        grid_search = _build_grid_search_for_gradient_boost(
+            random_state=current_seed,
+            param_grid=param_grid,
         )
 
         grid_search.fit(

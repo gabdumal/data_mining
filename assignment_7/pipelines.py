@@ -1,18 +1,21 @@
 from imblearn.over_sampling import SMOTENC
-from imblearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
+from imblearn.pipeline import Pipeline as ImbPipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestClassifier
 from sklearn.model_selection import (
     train_test_split,
 )
-from sklearn.preprocessing import FunctionTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.tree import DecisionTreeClassifier
 
 from data import (
-    df3,
-    df3_categorical_features,
-    df3_input_features,
-    df3_numerical_features,
-    df3_target_feature,
+    categorical_features,
+    classification_target_feature,
+    input_features,
+    numerical_features,
+    regression_target_feature,
+    t_df,
 )
 
 # ---------------------------------------------------------------------------
@@ -28,28 +31,10 @@ seeds = [
 ]
 seed = seeds[0]
 
-categorical_features = df3_categorical_features
-numerical_features = df3_numerical_features
-input_features = df3_input_features
-target_feature = df3_target_feature
 
-input_data = df3[input_features].copy()
-target_data = df3[target_feature].copy()
-
-
-def encode_categorical_features(data_frame):
-    """Encode categorical features as integer category codes."""
-    encoded_data = data_frame.copy()
-
-    for feature in categorical_features:
-        encoded_data[feature] = encoded_data[feature].cat.codes
-
-    return encoded_data
-
-
-categorical_feature_indices = [
-    input_features.index(feature) for feature in categorical_features
-]
+input_data = t_df[input_features].copy()
+classification_target_data = t_df[classification_target_feature].copy()
+regression_target_data = t_df[regression_target_feature].copy()
 
 
 # ---------------------------------------------------------------------------
@@ -59,16 +44,29 @@ categorical_feature_indices = [
 test_size = 0.2
 
 (
-    input_data_for_train,
-    input_data_for_test,
-    target_data_for_train,
-    target_data_for_test,
+    classification_input_data_for_train,
+    classification_input_data_for_test,
+    classification_target_data_for_train,
+    classification_target_data_for_test,
 ) = train_test_split(
     input_data,
-    target_data,
+    classification_target_data,
     test_size=test_size,
     random_state=seed,
-    stratify=target_data,
+    stratify=classification_target_data,
+)
+
+(
+    regression_input_data_for_train,
+    regression_input_data_for_test,
+    regression_target_data_for_train,
+    regression_target_data_for_test,
+) = train_test_split(
+    input_data,
+    regression_target_data,
+    test_size=test_size,
+    random_state=seed,
+    stratify=classification_target_data,
 )
 
 
@@ -83,44 +81,51 @@ def _build_decision_tree_pipeline(
 ):
     """Build a Decision Tree pipeline."""
 
-    encoder = (
-        "encoder",
-        FunctionTransformer(
-            encode_categorical_features,
-            validate=False,
-        ),
-    )
-
-    classifier = (
-        "classifier",
-        DecisionTreeClassifier(
-            random_state=random_state,
-        ),
-    )
+    classifier = DecisionTreeClassifier(random_state=random_state)
 
     if use_smote:
-        smote = (
-            "smote",
-            SMOTENC(
-                random_state=random_state,
-                categorical_features=categorical_feature_indices,
-            ),
-        )
-
-        return Pipeline(
-            [
-                encoder,
-                smote,
-                classifier,
+        smote_encoder = ColumnTransformer(
+            transformers=[
+                ("categorical", OrdinalEncoder(), categorical_features),
+                ("numerical", "passthrough", numerical_features),
             ]
         )
 
-    return Pipeline(
-        [
-            encoder,
-            classifier,
-        ]
-    )
+        final_encoder = ColumnTransformer(
+            transformers=[
+                (
+                    "categorical",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    [0, 1],
+                ),
+                ("numerical", "passthrough", list(range(2, len(input_features)))),
+            ]
+        )
+
+        smote = SMOTENC(categorical_features=[0, 1], random_state=random_state)
+
+        return ImbPipeline(
+            [
+                ("smote_encoder", smote_encoder),
+                ("smote", smote),
+                ("onehot", final_encoder),
+                ("classifier", classifier),
+            ]
+        )
+
+    else:
+        normal_encoder = ColumnTransformer(
+            transformers=[
+                (
+                    "categorical",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    categorical_features,
+                ),
+                ("numerical", "passthrough", numerical_features),
+            ]
+        )
+
+        return Pipeline([("encoder", normal_encoder), ("classifier", classifier)])
 
 
 # ---------------------------------------------------------------------------
@@ -134,42 +139,72 @@ def _build_random_forest_pipeline(
 ):
     """Build a SMOTENC + Random Forest pipeline."""
 
-    encoder = (
-        "encoder",
-        FunctionTransformer(
-            encode_categorical_features,
-            validate=False,
-        ),
-    )
-
-    classifier = (
-        "classifier",
-        RandomForestClassifier(
-            random_state=random_state,
-            n_jobs=-1,
-        ),
-    )
+    classifier = RandomForestClassifier(random_state=random_state)
 
     if use_smote:
-        smote = (
-            "smote",
-            SMOTENC(
-                random_state=random_state,
-                categorical_features=categorical_feature_indices,
-            ),
-        )
-
-        return Pipeline(
-            [
-                encoder,
-                smote,
-                classifier,
+        smote_encoder = ColumnTransformer(
+            transformers=[
+                ("categorical", OrdinalEncoder(), categorical_features),
+                ("numerical", "passthrough", numerical_features),
             ]
         )
 
-    return Pipeline(
-        [
-            encoder,
-            classifier,
+        final_encoder = ColumnTransformer(
+            transformers=[
+                (
+                    "categorical",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    [0, 1],
+                ),
+                ("numerical", "passthrough", list(range(2, len(input_features)))),
+            ]
+        )
+
+        smote = SMOTENC(categorical_features=[0, 1], random_state=random_state)
+
+        return ImbPipeline(
+            [
+                ("smote_encoder", smote_encoder),
+                ("smote", smote),
+                ("onehot", final_encoder),
+                ("classifier", classifier),
+            ]
+        )
+
+    else:
+        normal_encoder = ColumnTransformer(
+            transformers=[
+                (
+                    "categorical",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    categorical_features,
+                ),
+                ("numerical", "passthrough", numerical_features),
+            ]
+        )
+
+        return Pipeline([("encoder", normal_encoder), ("classifier", classifier)])
+
+
+# ---------------------------------------------------------------------------
+# Gradient Boost
+# ---------------------------------------------------------------------------
+
+
+def _build_gradient_boost_pipeline(
+    random_state: int,
+):
+    preprocessor = ColumnTransformer(
+        transformers=[
+            (
+                "categorical",
+                OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                categorical_features,
+            ),
+            ("numerical", "passthrough", numerical_features),
         ]
     )
+
+    regressor = GradientBoostingRegressor(random_state=random_state)
+
+    return Pipeline([("preprocessor", preprocessor), ("regressor", regressor)])

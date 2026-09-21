@@ -6,6 +6,18 @@ import pandas as pd
 from IPython.display import display
 from sklearn.model_selection import GridSearchCV
 
+from collections.abc import Mapping, Callable
+import math
+
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    StratifiedKFold,
+)
+
 
 def _build_target_distribution_table(
     train_target,
@@ -535,21 +547,331 @@ def display_grid_search_results(
     display(styled_results)
 
 
-def display_grid_search_summary(
+# ---------------------------------------------------------------------------*
+# Generic Grid Search
+# ---------------------------------------------------------------------------*
+
+
+def _build_grid_search(
+    random_state: int,
+    param_grid,
+    pipeline_builder: Callable,
+    scoring: Mapping[str, str],
+    refit: str,
+    cv,
+):
+    """Build a GridSearchCV for a model pipeline."""
+
+    pipeline = pipeline_builder(
+        random_state=random_state,
+    )
+
+    return GridSearchCV(
+        estimator=pipeline,
+        param_grid=param_grid,
+        scoring=scoring,
+        refit=refit,
+        cv=cv,
+        n_jobs=-1,
+        return_train_score=False,
+        error_score="raise",
+    )
+
+
+def _run_grid_searches(
+    input_data,
+    target_data,
+    seeds,
+    param_grid,
+    pipeline_builder: Callable,
+    scoring: Mapping[str, str],
+    refit: str,
+    cv_builder: Callable,
+):
+    """Run GridSearchCV for multiple random seeds."""
+
+    grid_searches = {}
+
+    for current_seed in seeds:
+        cross_validation = cv_builder(
+            random_state=current_seed,
+        )
+
+        grid_search = _build_grid_search(
+            random_state=current_seed,
+            param_grid=param_grid,
+            pipeline_builder=pipeline_builder,
+            scoring=scoring,
+            refit=refit,
+            cv=cross_validation,
+        )
+
+        grid_search.fit(
+            input_data,
+            target_data,
+        )
+
+        grid_searches[current_seed] = grid_search
+
+    return grid_searches
+
+
+def _build_stratified_cv(random_state: int):
+    """Build stratified cross-validation for classification."""
+
+    return StratifiedKFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=random_state,
+    )
+
+
+def _build_regression_cv(random_state: int):
+    """Build cross-validation for regression."""
+
+    return KFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=random_state,
+    )
+
+
+CLASSIFICATION_GRID_SEARCH_METRICS = {
+    "F1 Macro": {
+        "score_name": "f1_macro",
+        "higher_is_better": True,
+        "score_multiplier": 1,
+    },
+    "Balanced Accuracy": {
+        "score_name": "balanced_accuracy",
+        "higher_is_better": True,
+        "score_multiplier": 1,
+    },
+    "Accuracy": {
+        "score_name": "accuracy",
+        "higher_is_better": True,
+        "score_multiplier": 1,
+    },
+}
+
+
+REGRESSION_GRID_SEARCH_METRICS = {
+    "MAE": {
+        "score_name": "mae",
+        "higher_is_better": False,
+        "score_multiplier": -1,
+    },
+    "RMSE": {
+        "score_name": "rmse",
+        "higher_is_better": False,
+        "score_multiplier": -1,
+    },
+    "R²": {
+        "score_name": "r2",
+        "higher_is_better": True,
+        "score_multiplier": 1,
+    },
+}
+
+
+def _normalize_grid_search_parameter(
+    value: object,
+) -> object:
+    """Normalize a GridSearchCV parameter value."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, float):
+        if math.isnan(value):
+            return None
+
+        if value.is_integer():
+            return int(value)
+
+    if isinstance(value, np.integer):
+        return int(value)
+
+    return value
+
+
+def _prepare_grid_search_summary(
     grid_searches: Mapping[int, GridSearchCV],
-    caption: str = "Grid Search Summary",
-) -> None:
-    """Display cross-seed GridSearchCV summary."""
+    metrics: Mapping[str, Mapping[str, object]],
+) -> pd.DataFrame:
+    """Prepare a cross-seed GridSearchCV summary."""
 
-    summary = _prepare_grid_search_summary(grid_searches)
+    if not grid_searches:
+        raise ValueError("No GridSearchCV results were provided.")
 
-    best_rows = {
-        "F1 Macro": summary["F1 Macro mean"].idxmax(),
-        "Balanced Accuracy": (summary["Balanced Accuracy mean"].idxmax()),
-        "Accuracy": summary["Accuracy mean"].idxmax(),
+    rows = []
+
+    for random_state, grid_search in grid_searches.items():
+        cv_results = pd.DataFrame(grid_search.cv_results_)
+
+        parameter_columns = [
+            column for column in cv_results.columns if column.startswith("param_")
+        ]
+
+        for _, row in cv_results.iterrows():
+            result = {
+                parameter: _normalize_grid_search_parameter(row[parameter])
+                for parameter in parameter_columns
+            }
+
+            result["random_state"] = random_state
+
+            for metric_name, metric_config in metrics.items():
+                score_column = f"mean_test_{metric_config['score_name']}"
+
+                result[metric_name] = (
+                    row[score_column] * metric_config["score_multiplier"]
+                )
+
+            rows.append(result)
+
+    results = pd.DataFrame(rows)
+
+    parameter_columns = [
+        column for column in results.columns if column.startswith("param_")
+    ]
+
+    summary = results.groupby(
+        parameter_columns,
+        dropna=False,
+        as_index=False,
+    ).agg({metric_name: ["mean", "std"] for metric_name in metrics})
+
+    # Flatten the MultiIndex generated by .agg().
+    flattened_columns = []
+
+    for column in summary.columns:
+        if isinstance(column, tuple):
+            if column[1]:
+                flattened_columns.append(f"{column[0]} {column[1]}")
+            else:
+                flattened_columns.append(column[0])
+        else:
+            flattened_columns.append(column)
+
+    summary.columns = flattened_columns
+
+    return summary
+
+
+def _get_best_grid_search_row(
+    summary: pd.DataFrame,
+    selection_metric: str,
+    higher_is_better: bool,
+) -> pd.Series:
+    """Return the best row according to a summary metric."""
+
+    if summary.empty:
+        raise ValueError("GridSearchCV summary is empty.")
+
+    metric_column = f"{selection_metric} mean"
+
+    if metric_column not in summary.columns:
+        raise ValueError(f"Metric column '{metric_column}' was not found.")
+
+    if higher_is_better:
+        best_index = summary[metric_column].idxmax()
+    else:
+        best_index = summary[metric_column].idxmin()
+
+    return summary.loc[best_index]
+
+
+def _get_best_grid_search_parameters(
+    grid_searches: Mapping[int, GridSearchCV],
+    metrics: Mapping[str, Mapping[str, object]],
+    selection_metric: str,
+) -> dict[str, object]:
+    """Return the parameters for the best cross-seed configuration."""
+
+    if selection_metric not in metrics:
+        raise ValueError(f"Unknown selection metric: {selection_metric}")
+
+    summary = _prepare_grid_search_summary(
+        grid_searches=grid_searches,
+        metrics=metrics,
+    )
+
+    metric_config = metrics[selection_metric]
+
+    best_row = _get_best_grid_search_row(
+        summary=summary,
+        selection_metric=selection_metric,
+        higher_is_better=metric_config["higher_is_better"],
+    )
+
+    parameter_columns = [
+        column for column in summary.columns if column.startswith("param_")
+    ]
+
+    return {
+        parameter: _normalize_grid_search_parameter(best_row[parameter])
+        for parameter in parameter_columns
     }
 
-    display_data = _prepare_grid_search_summary_display(summary)
+
+def _prepare_grid_search_summary_display(
+    summary: pd.DataFrame,
+    metrics: Mapping[str, Mapping[str, object]],
+) -> pd.DataFrame:
+    """Prepare a human-readable GridSearchCV summary."""
+
+    parameter_columns = [
+        column for column in summary.columns if column.startswith("param_")
+    ]
+
+    display_data = summary[parameter_columns].copy()
+
+    # Make parameter names more readable.
+    display_data.columns = [
+        column.removeprefix("param_") for column in display_data.columns
+    ]
+
+    for metric_name in metrics:
+        mean_column = f"{metric_name} mean"
+        std_column = f"{metric_name} std"
+
+        display_data[metric_name] = (
+            summary[mean_column].map(lambda value: f"{value:.4f}")
+            + " ± "
+            + summary[std_column].map(lambda value: f"{value:.4f}")
+        )
+
+    return display_data
+
+
+def display_grid_search_summary(
+    grid_searches: Mapping[int, GridSearchCV],
+    metrics: Mapping[str, Mapping[str, object]],
+    selection_metric: str,
+    caption: str = "Grid Search Summary",
+) -> None:
+    """Display a cross-seed GridSearchCV summary."""
+
+    summary = _prepare_grid_search_summary(
+        grid_searches=grid_searches,
+        metrics=metrics,
+    )
+
+    display_data = _prepare_grid_search_summary_display(
+        summary=summary,
+        metrics=metrics,
+    )
+
+    best_rows = {}
+
+    for metric_name, metric_config in metrics.items():
+        metric_column = f"{metric_name} mean"
+
+        if metric_config["higher_is_better"]:
+            best_rows[metric_name] = summary[metric_column].idxmax()
+        else:
+            best_rows[metric_name] = summary[metric_column].idxmin()
 
     styled_summary = (
         display_data.style.hide(axis="index")
@@ -580,42 +902,51 @@ def display_grid_search_summary(
     display(styled_summary)
 
 
-def _normalize_grid_search_parameter(
-    value: object,
-) -> object:
-    """Normalize a GridSearchCV parameter value."""
+def run_grid_searches_for_classification(
+    input_data,
+    target_data,
+    seeds,
+    param_grid,
+    pipeline_builder,
+):
+    """Run classification GridSearchCV for multiple seeds."""
 
-    if value is None:
-        return None
+    return _run_grid_searches(
+        input_data=input_data,
+        target_data=target_data,
+        seeds=seeds,
+        param_grid=param_grid,
+        pipeline_builder=pipeline_builder,
+        scoring={
+            "f1_macro": "f1_macro",
+            "balanced_accuracy": "balanced_accuracy",
+            "accuracy": "accuracy",
+        },
+        refit="f1_macro",
+        cv_builder=_build_stratified_cv,
+    )
 
-    if isinstance(value, float):
-        if math.isnan(value):
-            return None
 
-        if value.is_integer():
-            return int(value)
+def run_grid_searches_for_regression(
+    input_data,
+    target_data,
+    seeds,
+    param_grid,
+    pipeline_builder,
+):
+    """Run regression GridSearchCV for multiple seeds."""
 
-    if isinstance(value, np.integer):
-        return int(value)
-
-    return value
-
-
-def get_best_grid_search_parameters(
-    grid_searches: Mapping[int, GridSearchCV],
-) -> dict[str, object]:
-    """Return the parameters with the highest cross-seed mean Macro F1."""
-
-    summary = _prepare_grid_search_summary(grid_searches)
-
-    if summary.empty:
-        raise ValueError("GridSearchCV summary is empty.")
-
-    parameter_columns = _get_grid_search_parameter_columns(summary)
-
-    best_row = summary.iloc[0]
-
-    return {
-        parameter: _normalize_grid_search_parameter(best_row[parameter])
-        for parameter in parameter_columns
-    }
+    return _run_grid_searches(
+        input_data=input_data,
+        target_data=target_data,
+        seeds=seeds,
+        param_grid=param_grid,
+        pipeline_builder=pipeline_builder,
+        scoring={
+            "mae": "neg_mean_absolute_error",
+            "rmse": "neg_root_mean_squared_error",
+            "r2": "r2",
+        },
+        refit="mae",
+        cv_builder=_build_regression_cv,
+    )
