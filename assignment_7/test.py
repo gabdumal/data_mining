@@ -22,9 +22,9 @@ from pipelines import (
 
 best_parameters_for_decision_tree_without_smote = {
     "classifier__criterion": "entropy",
-    "classifier__max_depth": 10,
+    "classifier__max_depth": None,
     "classifier__min_samples_leaf": 1,
-    "classifier__min_samples_split": 5,
+    "classifier__min_samples_split": 10,
 }
 decision_tree_without_smote_test_results = run_model_test_evaluation(
     model_name="Decision Tree without SMOTE",
@@ -43,8 +43,8 @@ decision_tree_without_smote_test_results = run_model_test_evaluation(
 best_parameters_for_decision_tree_with_smote = {
     "classifier__criterion": "entropy",
     "classifier__max_depth": 7,
-    "classifier__min_samples_leaf": 2,
-    "classifier__min_samples_split": 2,
+    "classifier__min_samples_leaf": 1,
+    "classifier__min_samples_split": 5,
 }
 decision_tree_with_smote_test_results = run_model_test_evaluation(
     model_name="Decision Tree with SMOTE",
@@ -66,12 +66,12 @@ decision_tree_with_smote_test_results = run_model_test_evaluation(
 # ---------------------------------------------------------------------------
 
 best_parameters_for_random_forest_without_smote = {
-    "classifier__criterion": "gini",
+    "classifier__criterion": "entropy",
     "classifier__max_depth": 10,
     "classifier__max_features": "log2",
     "classifier__min_samples_leaf": 1,
     "classifier__min_samples_split": 5,
-    "classifier__n_estimators": 100,
+    "classifier__n_estimators": 300,
 }
 random_forest_without_smote_test_results = run_model_test_evaluation(
     model_name="Random Forest without SMOTE",
@@ -93,7 +93,7 @@ best_parameters_for_random_forest_with_smote = {
     "classifier__max_features": "log2",
     "classifier__min_samples_leaf": 2,
     "classifier__min_samples_split": 5,
-    "classifier__n_estimators": 300,
+    "classifier__n_estimators": 200,
 }
 random_forest_with_smote_test_results = run_model_test_evaluation(
     model_name="Random Forest with SMOTE",

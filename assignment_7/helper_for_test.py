@@ -35,11 +35,12 @@ TEST_METRIC_COLUMNS = [
 
 @dataclass
 class ModelTestResults:
-    """Store predictions and metrics from repeated test runs."""
+    """Store predictions, metrics, and feature importances from repeated test runs."""
 
     model_name: str
     predictions: dict[int, pd.Series]
     seed_metrics: pd.DataFrame
+    feature_importances: dict[int, pd.Series]
 
 
 def run_model_test_evaluation(
@@ -56,6 +57,7 @@ def run_model_test_evaluation(
 
     predictions = {}
     metric_rows = []
+    feature_importances = {}
 
     for current_seed in seeds:
         model = model_factory(current_seed)
@@ -100,12 +102,18 @@ def run_model_test_evaluation(
             }
         )
 
+        feature_importances[current_seed] = _extract_feature_importances(
+            model,
+            feature_names=list(input_data_for_train.columns),
+        )
+
     seed_metrics = pd.DataFrame(metric_rows)
 
     return ModelTestResults(
         model_name=model_name,
         predictions=predictions,
         seed_metrics=seed_metrics,
+        feature_importances=feature_importances,
     )
 
 
@@ -935,6 +943,109 @@ def display_model_agreement(
     display(styled_data)
 
 
+def _extract_feature_importances(
+    model: BaseEstimator,
+    feature_names: list[str],
+) -> pd.Series:
+    """Extract feature importances from a fitted model or pipeline."""
+
+    estimator = model
+
+    # Your models use a pipeline with a classifier step.
+    if hasattr(model, "named_steps") and "classifier" in model.named_steps:  # type: ignore
+        estimator = model.named_steps["classifier"]  # type: ignore
+
+    if not hasattr(estimator, "feature_importances_"):
+        raise ValueError(
+            f"{type(estimator).__name__} does not provide `feature_importances_`."
+        )
+
+    importances = np.asarray(
+        estimator.feature_importances_,  # type: ignore
+        dtype=float,
+    )
+
+    if len(importances) != len(feature_names):
+        raise ValueError(
+            "The number of feature names does not match the number "
+            f"of feature importances: {len(feature_names)} != {len(importances)}."
+        )
+
+    return pd.Series(
+        importances,
+        index=feature_names,
+        name="Importance",
+    ).sort_values(ascending=False)
+
+
+def display_feature_importance(
+    results: ModelTestResults,
+    caption: str = "Feature Importance Across Five Seeds",
+) -> None:
+    """Display mean feature importance across model seeds."""
+
+    importance_data = pd.concat(
+        results.feature_importances,
+        axis=1,
+    )
+
+    summary = (
+        pd.DataFrame(
+            {
+                "Feature": importance_data.index,
+                "Importance mean": importance_data.mean(axis=1),
+                "Importance std": importance_data.std(axis=1),
+            }
+        )
+        .sort_values(
+            by="Importance mean",
+            ascending=False,
+        )
+        .reset_index(drop=True)
+    )
+
+    display_data = pd.DataFrame(
+        {
+            "Feature": summary["Feature"],
+            "Importance": [
+                _format_mean_std(
+                    mean_value,
+                    std_value,
+                )
+                for mean_value, std_value in zip(
+                    summary["Importance mean"],
+                    summary["Importance std"],
+                )
+            ],
+        }
+    )
+
+    styled_data = (
+        display_data.style.hide(axis="index")
+        .set_caption(
+            caption,
+        )
+        .set_table_styles(
+            [
+                {
+                    "selector": "th",
+                    "props": [
+                        ("text-align", "center"),
+                    ],
+                },
+                {
+                    "selector": "td",
+                    "props": [
+                        ("text-align", "center"),
+                    ],
+                },
+            ]
+        )
+    )
+
+    display(styled_data)
+
+
 def display_complete_test_report(
     model_results: Mapping[str, ModelTestResults],
     target_data_for_test: pd.Series,
@@ -985,6 +1096,11 @@ def display_complete_test_report(
             normalized_matrix,
             caption=(f"{model_name} — Mean Row-Normalized Confusion Matrix"),
             percentage=True,
+        )
+
+        display_feature_importance(
+            results,
+            caption=f"{model_name} — Feature Importances",
         )
 
 

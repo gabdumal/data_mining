@@ -72,7 +72,6 @@ df2 = df[df2_features].copy()
 # Remove features that do not have significative differences between age groups
 df3_target_feature = "age_group"
 df3_categorical_features = [
-    "sex",
     "mouth_condition",
 ]
 df3_numerical_features = [
