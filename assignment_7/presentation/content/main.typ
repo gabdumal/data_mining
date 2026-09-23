@@ -134,3 +134,78 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 )
 
 #pagebreak()
+
+
+#title_slide("Pré-processamento")
+
+== Descrição
+
+#grid(
+  columns: (1fr, auto),
+  gutter: small_leading,
+  [
+    - #strong[924] entradas.
+
+    - #stress[20] características.
+
+    - Não existem duplicatas, nem dados faltantes.
+  ],
+  align(
+    center + horizon,
+    image(width: 19cm, "/assets/images/histograma_de_idades.png"),
+  ),
+)
+
+#pagebreak()
+
+#align(center + horizon, image(height: 100%, "/assets/images/barras_de_faixas_etarias.png"))
+
+#pagebreak()
+
+#align(center + horizon, image(
+  height: 100%,
+  "/assets/images/barras_de_condicao_da_boca_em_relacao_as_faixas_etarias.png",
+))
+
+#pagebreak()
+
+#align(center + horizon, image(
+  height: 100%,
+  "/assets/images/boxplot_de_dentes_saudaveis.png",
+))
+
+#pagebreak()
+
+#align(center + horizon, image(
+  height: 100%,
+  "/assets/images/boxplot_de_raizes_residuais.png",
+))
+
+#pagebreak()
+
+#align(center + horizon, image(
+  height: 100%,
+  "/assets/images/barras_de_raizes_residuais_em_relacao_as_faixas_etarias.png",
+))
+
+#pagebreak()
+
+#grid(
+  columns: (1fr, auto),
+  gutter: small_leading,
+  [
+    == Correlação
+
+    - Não foram encontradas correlações significativas.
+
+    == Conclusões
+
+    - Priorizar métodos que lidem bem com #stress[outliers].
+    - Considerar #stress[balanceamento].
+    - Selecionadas 10 condições dentais + 1 da boca = #stress[11].
+  ],
+  align(center + horizon, image(
+    height: 100%,
+    "/assets/images/correlacao_de_spearman.png",
+  )),
+)
