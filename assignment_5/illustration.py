@@ -1,13 +1,15 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import (
+    ConfusionMatrixDisplay,
     accuracy_score,
+    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
 )
-import matplotlib.pyplot as plt
-from sklearn.tree import plot_tree
 from sklearn.model_selection import StratifiedKFold
+from sklearn.tree import plot_tree
 
 from columns import get_name_of_column
 
@@ -291,5 +293,33 @@ def plot_decision_tree(decision_tree, numerical_columns):
         fontsize=9,
     )
 
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_confusion_matrix(
+    model,
+    y_true,
+    y_pred,
+    model_name,
+):
+    classifier = model.named_steps["classifier"]
+    class_names = classifier.classes_
+    matrix = confusion_matrix(
+        y_true,
+        y_pred,
+        labels=class_names,
+    )
+    display = ConfusionMatrixDisplay(
+        confusion_matrix=matrix,
+        display_labels=class_names,
+    )
+    _, ax = plt.subplots(figsize=(6, 5))
+    display.plot(
+        ax=ax,
+        values_format="d",
+        cmap="Blues",
+    )
+    ax.set_title(f"Confusion Matrix - {model_name}")
     plt.tight_layout()
     plt.show()
