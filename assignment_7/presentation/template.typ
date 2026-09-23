@@ -32,6 +32,7 @@
   )
 
   show heading: set block(below: larger_leading)
+
   set page(
     paper: "presentation-16-9",
     margin: (y: larger_leading, x: leading),
@@ -46,5 +47,6 @@
       ),
     ),
   )
+
   it
 }

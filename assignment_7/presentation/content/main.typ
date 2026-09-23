@@ -11,7 +11,6 @@ A estimação da #stress[idade] com base dos *dentes* é comum nas áreas de inv
   #cite(<lee:2026:machine_learning_adult_age_estimation>, form: "full")
 ].
 
-
 As mudanças #stress[características] de idade são mais perceptíveis em crianças e jovens do que em *adultos*, o que dificulta a exatidão da estimativa aferida por técnicos humanos.
 
 #pagebreak()
@@ -62,29 +61,35 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 #grid(
   row-gutter: leading / 2,
   strong("Condição da boca"),
-  table(
-    columns: 4,
-    column-gutter: (0pt, small_leading, 0pt),
-    [Ed], [Sem dentes], [De], [Dentes presentes],
-    [Me], [Maxilar sem dentes], [Mne], [mandíbula sem dentes],
+  pad(
+    left: leading,
+    table(
+      columns: 4,
+      column-gutter: (0pt, small_leading, 0pt),
+      [Ed], [Sem dentes], [De], [Dentes presentes],
+      [Me], [Maxilar sem dentes], [Mne], [mandíbula sem dentes],
+    ),
   ),
 )
 
 #grid(
   row-gutter: leading / 2,
   strong("Condição de um dente"),
-  table(
-    columns: 4,
-    column-gutter: (0pt, 12pt, 0pt),
-    [H], [Saudável], [R], [Restauração],
-    [Di], [Desgaste do incisivo], [C], [Cáries],
-    [I], [Impactado], [Im], [Implante],
-    [M3i], [3º molar impactado], [M3f], [3º molar desenvolvendo],
-    [P], [Pôntico], [Dc], [Coroa destruída],
-    [Te], [Tratamento endodôntico], [TeM], [Tratamento endodôntico misto],
-    [Ri], [Pino intrarradicular], [RiM], [Pino intrarradicular misto],
-    [Cp], [Coroa prostética], [CpuM], [Coroa prostética mista],
-    [Rr], [Raiz residual],
+  pad(
+    left: leading,
+    table(
+      columns: 4,
+      column-gutter: (0pt, 12pt, 0pt),
+      [H], [Saudável], [R], [Restauração],
+      [Di], [Desgaste do incisivo], [C], [Cáries],
+      [I], [Impactado], [Im], [Implante],
+      [M3i], [3º molar impactado], [M3f], [3º molar desenvolvendo],
+      [P], [Pôntico], [Dc], [Coroa destruída],
+      [Te], [Tratamento endodôntico], [TeM], [Tratamento endodôntico misto],
+      [Ri], [Pino intrarradicular], [RiM], [Pino intrarradicular misto],
+      [Cp], [Coroa prostética], [CpuM], [Coroa prostética mista],
+      [Rr], [Raiz residual],
+    ),
   ),
 )
 
@@ -209,3 +214,107 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
     "/assets/images/correlacao_de_spearman.png",
   )),
 )
+
+
+#title_slide("Validação")
+
+#grid(
+  columns: (1fr, 2.1fr),
+  column-gutter: small_leading,
+  [
+    == Separação de dados
+    - De 924 entradas:
+      - #stress[80%] para validação (739);
+      - #stress[20%] para o teste (185);
+      - #strong[estratificado] pelas 7 faixas etárias.
+  ],
+  [
+    == Balanceamento
+    - Aferido em validação cruzada estratificada de #stress[5 folds] por #strong[5 seeds] fixas = #strong[25].
+    - Método de #stress[SMOTE], avaliado por F1 macro.
+    - Não há vantagem significativa. Ambas as opções serão testadas.
+
+    #align(
+      center,
+      table(
+        columns: 2,
+        align: (start, end),
+        table.header(strong[Método], strong[Macro F1]),
+        [Decision Tree #text(fill: red)[sem] SMOTE], [0.338 ± 0.016],
+        [Decision Tree #text(fill: blue)[com] SMOTE], [0.353 ± 0.011],
+        [Random Forest #text(fill: red)[sem] SMOTE], [0.375 ± 0.014],
+        [Random Forest #text(fill: blue)[com] SMOTE], strong[0.379 ± 0.012],
+      ),
+    )
+  ],
+)
+
+#pagebreak()
+
+== Ajuste de hiperparâmetros
+
+- Usado #stress[GridSearch] estratificado com #strong[5 folds] por #strong[5 seeds] fixas = #strong[25].
+- Para classificação: avaliação por F1 Macro em relação às faixas etárias.
+- Para regressão: avaliação por MAE em relação à idade.
+
+#align(
+  center + horizon,
+  table(
+    columns: 4,
+    align: (start, end, end, end),
+    table.header(table.cell(colspan: 4, strong[Decision Tree, F1])),
+    table.header(
+      strong[Parâmetro],
+      strong[Possibilidades],
+      strong[#text(fill: red)[sem] SMOTE],
+      strong[#text(fill: blue)[com] SMOTE],
+    ),
+    [Critério de seleção], [gini, entropy], [entropy], [entropy],
+    [Profundidade máxima], [7, 10, #sym.infinity], [#sym.infinity], [7],
+    [Min. amostras p. separação], [2, 5, 10], [10], [2],
+    [Min. amostras nas folhas], [1, 2, 5], [1], [1],
+  ),
+)
+
+#colbreak()
+
+#align(
+  center + horizon,
+  table(
+    columns: 4,
+    align: (start, end, end, end),
+    table.header(table.cell(colspan: 4, strong[Random Forest, F1])),
+    table.header(
+      strong[Parâmetro],
+      strong[Possibilidades],
+      strong[#text(fill: red)[sem] SMOTE],
+      strong[#text(fill: blue)[com] SMOTE],
+    ),
+    [Critério de seleção], [gini, entropy], [entropy], [entropy],
+    [Limite de características], [sqrt, log2], [log2], [log2],
+    [Profundidade máxima], [3, 5, 7], [7], [7],
+    [Min. amostras p. separação], [2, 5, 10], [2], [2],
+    [Min. amostras nas folhas], [1, 2, 3], [1], [1],
+    [Quant. de estimadores], [100, 200, 300], [200], [300],
+  ),
+)
+
+#colbreak()
+
+#align(
+  center + horizon,
+  table(
+    columns: 3,
+    align: (start, end, end),
+    table.header(table.cell(colspan: 3, strong[Gradient Boost, MAE])),
+    table.header(strong[Parâmetro], strong[Possibilidades], strong[Escolhido]),
+    [Função de perda], [absolute_error, squared_error, huber], [huber],
+    [Taxa de aprendizado], [0.01, 0.05, 0.1], [0.05],
+    [Profundidade máxima], [2, 3, 5], [2],
+    [Min. amostras nas folhas], [1, 3, 5, 10], [1],
+    [Quant. de estimadores], [100, 200, 300], [200],
+  ),
+)
+
+
+#title_slide("Teste")
