@@ -2,7 +2,7 @@
 
 #import "data/data.typ": authors, date, subtitle, title
 #import "packages.typ": (
-  quati-abnt.article, quati-abnt.bibliography.cite_prose, quati-abnt.common.components,
+  hydra, quati-abnt.article, quati-abnt.bibliography.cite_prose, quati-abnt.common.components,
   quati-abnt.common.components.describe_figure, quati-abnt.common.components.equation,
   quati-abnt.common.components.format_table, quati-abnt.note.closed_discussion_note, quati-abnt.note.create_status_note,
   quati-abnt.note.done_note, quati-abnt.note.editor_note, quati-abnt.note.open_discussion_note,
@@ -153,4 +153,4 @@
   text(fill: theme_color, strong(it))
 }
 
-#let header_2_formatting = it => block(below: 2em, text(weight: "bold", size: 1.2em, it))
+#let copy_last_heading(level: 2) = context { hydra(level, display: (ctx, it) => it) }

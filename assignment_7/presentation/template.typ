@@ -1,4 +1,4 @@
-#import "packages.typ": hydra
+#import "packages.typ": anchor, hydra
 #import "style/style.typ": larger_leading, leading, small_leading, theme_color
 
 #let page_footer = context {
@@ -31,20 +31,26 @@
     size: leading,
   )
 
-  show heading: set block(below: larger_leading)
+  show heading: set block(above: larger_leading, below: leading)
 
   set page(
     paper: "presentation-16-9",
     margin: (y: larger_leading, x: leading),
-    footer: align(right, page_footer),
+    footer: [
+      #align(right, page_footer)
+      #anchor()
+    ],
     foreground: align(bottom, page_progress_bar),
     header: context align(
       right,
-      text(
-        weight: "semibold",
-        fill: theme_color,
-        hydra(1),
-      ),
+      [
+        #anchor()
+        #text(
+          weight: "semibold",
+          fill: theme_color,
+          hydra(1),
+        )
+      ],
     ),
   )
 

@@ -239,7 +239,7 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
       table(
         columns: 2,
         align: (start, end),
-        table.header(strong[Método], strong[Macro F1]),
+        table.header(strong[Modelo], strong[F1 macro]),
         [Decision Tree #text(fill: red)[sem] SMOTE], [0.338 ± 0.016],
         [Decision Tree #text(fill: blue)[com] SMOTE], [0.353 ± 0.011],
         [Random Forest #text(fill: red)[sem] SMOTE], [0.375 ± 0.014],
@@ -278,6 +278,8 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 
 #colbreak()
 
+#copy_last_heading()
+
 #align(
   center + horizon,
   table(
@@ -301,6 +303,8 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 
 #colbreak()
 
+#copy_last_heading()
+
 #align(
   center + horizon,
   table(
@@ -318,3 +322,84 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 
 
 #title_slide("Teste")
+
+== Avaliação
+
+- Realizados em #stress[20%] das amostras (185) da base de dados.
+- Compilação dos resultados de #strong[5 seeds] fixas.
+
+#align(
+  center + horizon,
+  table(
+    columns: (1fr, auto, auto, auto),
+    align: (start, end, end, end),
+    table.header(strong[Modelo], strong[Acurácia], strong[Acc. balanceada], strong[F1 macro]),
+    [Dec. Tree #text(fill: red)[sem] Bl.], [0.4076 ± 0.0048], [0.3751 ± 0.0034], [0.3607 ± 0.0037],
+    [Dec. Tree #text(fill: blue)[com] Bl.], [0.4130 ± 0.0197], strong[0.4233 ± 0.0163], [0.3703 ± 0.0100],
+    [Rnd. For. #text(fill: red)[sem] Bl.], strong[0.4443 ± 0.0089], [0.3859 ± 0.0092], [0.3959 ± 0.0102],
+    [Rnd. For. #text(fill: blue)[com] Bl.], [0.4400 ± 0.0141], [0.4181 ± 0.0170], strong[0.4166 ± 0.0147],
+  ),
+)
+
+#align(
+  horizon,
+  table(
+    columns: (1fr, auto, auto, auto),
+    align: (start, end, end, end),
+    table.header(strong[Modelo], strong[MAE], strong[RMSE], strong[R²]),
+    [Gradient Boost], [7.0471 ± 0.0058], [9.3780 ± 0.0042], [0.7152 ± 0.0003],
+  ),
+)
+
+#pagebreak()
+
+#image("/assets/images/barras_de_real_vs_estimado.png")
+
+#grid(
+  columns: 2,
+  image("/assets/images/matriz_de_confusao_de_decision_tree_sem_smote.png"),
+  image("/assets/images/matriz_de_confusao_de_decision_tree_com_smote.png"),
+)
+
+#grid(
+  columns: 2,
+  image("/assets/images/matriz_de_confusao_de_random_forest_sem_smote.png"),
+  image("/assets/images/matriz_de_confusao_de_random_forest_com_smote.png"),
+)
+
+#grid(
+  columns: 2,
+  image("/assets/images/matriz_de_confusao_de_gradient_boost.png"),
+  image("/assets/images/scatterplot_de_gradient_boost.png"),
+)
+
+#align(
+  center + horizon,
+  image("/assets/images/matriz_de_confusao_de_residuos_de_gradient_boost.png"),
+)
+
+
+#pagebreak()
+
+== Importância das características
+
+#grid(
+  columns: 5,
+  image(height: 6cm, "/assets/images/pizza_de_importancia_de_caracteristicas_para_decision_tree_sem_smote.png"),
+  image(height: 6cm, "/assets/images/pizza_de_importancia_de_caracteristicas_para_decision_tree_com_smote.png"),
+  image(height: 6cm, "/assets/images/pizza_de_importancia_de_caracteristicas_para_random_forest_sem_smote.png"),
+  image(height: 6cm, "/assets/images/pizza_de_importancia_de_caracteristicas_para_random_forest_com_smote.png"),
+  image(height: 6cm, "/assets/images/pizza_de_importancia_de_caracteristicas_para_gradient_boost.png"),
+)
+
+#box(fill: color.rgb("8dd3c7"), inset: 4pt)[Saudável (H)],
+#box(fill: color.rgb("ffffb3"), inset: 4pt)[Restauração (R)],
+#box(fill: color.rgb("bebada"), inset: 4pt)[Trat. endod. (Te)],
+#box(fill: color.rgb("fb8072"), inset: 4pt)[Molar form. (M3f)],
+#box(fill: color.rgb("80b1d3"), inset: 4pt)[Molar impac. (M3i)],
+#box(fill: color.rgb("ccebc5"), inset: 4pt)[Cáries (C)],
+#box(fill: color.rgb("bc80bd"), inset: 4pt)[Desgaste incisivo (Di)],
+#box(fill: color.rgb("d9d9d9"), inset: 4pt)[Pôntico (P)],
+#box(fill: color.rgb("b3de69"), inset: 4pt)[Condição da boca],
+#box(fill: color.rgb("fdb462"), inset: 4pt)[Coroa prostética (Cpum)],
+#box(fill: color.rgb("fccde5"), inset: 4pt)[Implante (Im)].

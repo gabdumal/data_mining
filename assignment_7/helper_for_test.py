@@ -427,6 +427,139 @@ def display_feature_importance(
     )
 
 
+def prepare_grouped_feature_importance(
+    results: ModelTestResults,
+) -> pd.DataFrame:
+    """
+    Group one-hot encoded mouth_condition features into one feature.
+
+    Aggregation is performed per seed before calculating the mean and
+    standard deviation across seeds.
+    """
+
+    if not results.feature_importances:
+        raise ValueError(f"Model '{results.model_name}' has no feature importances.")
+
+    grouped_by_seed: dict[int, pd.Series] = {}
+
+    for seed, importances in results.feature_importances.items():
+        mouth_condition_mask = importances.index.str.startswith("mouth_condition_")
+
+        other_importances = importances.loc[~mouth_condition_mask].copy()
+
+        mouth_condition_importance = importances.loc[mouth_condition_mask].sum()
+
+        other_importances["mouth_condition"] = mouth_condition_importance
+
+        grouped_by_seed[seed] = other_importances
+
+    importance_data = pd.concat(
+        grouped_by_seed,
+        axis=1,
+    )
+
+    summary = (
+        pd.DataFrame(
+            {
+                "Feature": importance_data.index,
+                "Importance mean": importance_data.mean(axis=1),
+                "Importance std": importance_data.std(axis=1),
+            }
+        )
+        .sort_values(
+            "Importance mean",
+            ascending=False,
+        )
+        .reset_index(drop=True)
+    )
+
+    return summary
+
+
+FEATURE_IMPORTANCE_ORDER: tuple[str, ...] = (
+    "amount_of_h",
+    "amount_of_r",
+    "amount_of_te",
+    "amount_of_m3f",
+    "amount_of_m3i",
+    "amount_of_cpum",
+    "mouth_condition",
+    "amount_of_im",
+    "amount_of_p",
+    "amount_of_di",
+    "amount_of_c",
+)
+
+
+SET3_COLORS = plt.get_cmap("Set3").colors  # type: ignore
+
+FEATURE_IMPORTANCE_COLORS = {
+    feature: SET3_COLORS[index]
+    for index, feature in enumerate(FEATURE_IMPORTANCE_ORDER)
+}
+
+
+def plot_feature_importance_pie(
+    results: ModelTestResults,
+    title: str | None = None,
+) -> None:
+    """Plot grouped feature importance with a side legend."""
+
+    summary = prepare_grouped_feature_importance(results)
+
+    colors = [FEATURE_IMPORTANCE_COLORS[feature] for feature in summary["Feature"]]
+
+    figure, axis = plt.subplots(
+        figsize=(10, 7),
+    )
+
+    wedges, _ = axis.pie(
+        summary["Importance mean"],
+        colors=colors,
+        startangle=90,
+    )
+
+    legend_labels = [
+        f"{feature}: {importance:.1%}"
+        for feature, importance in zip(
+            summary["Feature"],
+            summary["Importance mean"],
+            strict=True,
+        )
+    ]
+
+    axis.legend(
+        wedges,
+        legend_labels,
+        title="Features",
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+    )
+
+    axis.set_title(title or f"{results.model_name} — Feature Importance")
+
+    axis.axis("equal")
+
+    figure.tight_layout()
+    plt.show()
+
+
+def plot_feature_importance_pies(
+    model_results: Mapping[str, ModelTestResults],
+) -> None:
+    """Plot one feature-importance pie chart for each model."""
+
+    if not model_results:
+        raise ValueError("model_results must contain at least one model.")
+
+    for results in model_results.values():
+        plot_feature_importance_pie(
+            results,
+            title=(f"{results.model_name} — Grouped Feature Importance"),
+        )
+
+
 # =============================================================================
 # Model evaluation
 # =============================================================================
