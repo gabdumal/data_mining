@@ -35,6 +35,42 @@
   )
 }
 
+#let note_from_heder = (
+  note: editor_note,
+  it,
+) => {
+  let color = oklch(93.85%, 0.122, 139.38deg)
+  note(
+    prefixes: (
+      (
+        body: "Heder",
+        fill: color,
+        stroke: color.saturate(25%),
+      ),
+    ),
+    it,
+  )
+}
+
+
+#let note_from_luciana = (
+  note: editor_note,
+  it,
+) => {
+  let color = oklch(83.25%, 0.093, 19.22deg)
+  note(
+    prefixes: (
+      (
+        body: "Luciana",
+        fill: color,
+        stroke: color.saturate(25%),
+      ),
+    ),
+    it,
+  )
+}
+
+
 #let template = it => {
   set text(
     lang: "pt",

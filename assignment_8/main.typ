@@ -23,6 +23,17 @@
   prefixes: ((body: "Motivação"),),
 )[Destacar a necessidade de métodos que reduzam a dependência de aferência manual e de procedimentos invasivos, explorando informações já disponíveis em radiografias panorâmicas.]
 
+A estimação da idade em humanos com base na condição dos dentes é comum nas áreas de investigação forense, de identificação de pessoas, e de planejamento para tratamento odontológico.
+Características marcantes de desenvolvimento são mais pronunciadas em crianças e jovens do que em adultos, o que dificulta a exatidão da estimativa.
+
+Técnicas comumente usadas para aferir a idade incluem a análise da qualidade e da quantidade dos dentes.
+Perda de dentes e quantidade de restaurações tendem a aumentar conforme o indivíduo envelhece, assim como o desgaste natural.
+Outras características, como a presença de dentes de leite e o desenvolvimento de molares, são mais marcadas em jovens.
+
+Essas análises podem ser feitas diretamente com o paciente em um consultório odontológico ou posteriormente, por meio de capturas de imagens radiográficas ou tomográficas.
+Esse segundo método tende a ser preferível, por ser menos invasivo e por separar a responsabilidade do técnico de imagem e do dentista.
+Isso se acentua no caso de análises forenses em ossadas, em que há a necessidade da preservação do material e da cadeia de custódia.
+
 #editor_note(
   prefixes: ((body: "Problema central"),),
 )[Formular o trabalho como um problema de predição da idade a partir de características extraídas das segmentações dentárias de radiografias panorâmicas.]
@@ -43,10 +54,6 @@
   prefixes: ((body: "Organização do texto"),),
 )[Encerrar com uma frase indicando o conteúdo das seções seguintes.]
 
-== Contexto e motivação
-#todo_note()[
-  Escrever 1--2 parágrafos sobre estimação de idade por características dentárias, aplicações e dificuldades específicas da população adulta.
-]
 
 == Objetivo e escopo
 #todo_note()[
