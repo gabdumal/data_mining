@@ -76,7 +76,7 @@
   (
     key: "svm",
     short: "SVM",
-    long: "Máquina de Vetores de Suporte",
+    long: "máquina de vetores de suporte",
     description: [em inglês, #foreign_text[Support Vector Machine].],
   ),
   (
@@ -89,6 +89,12 @@
     short: "NN",
     long: "redes neurais",
     description: [em inglês, #foreign_text[neural networks].],
+  ),
+  (
+    key: "iqr",
+    short: "IQR",
+    long: "intervalo interquartil",
+    description: [em inglês, #foreign_text[interquartile range].],
   ),
 )
 
