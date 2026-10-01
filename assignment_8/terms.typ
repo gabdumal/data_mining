@@ -44,6 +44,10 @@
     key: "f1",
     short: [F1],
   ),
+  (
+    key: "f1_macro",
+    short: [F1 macro],
+  ),
 )
 
 #let get_term = (

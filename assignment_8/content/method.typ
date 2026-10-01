@@ -43,23 +43,49 @@ Como benefício nos métodos em árvore, ressalta-se a capacidade de atribuir ma
   #image("../assets/correlacao_de_spearman.png")
 ] <figura:correlacao_de_spearman>
 
-== Divisão, balanceamento e validação
+== Divisão e validação
 
-#todo_note()[
-  Descrever a divisão 80/20, a estratificação e o protocolo de 5 folds × 5 sementes. Inserir um esquema simples do fluxo treino/validação/teste e deixar claro que o conjunto de teste não participa da escolha de hiperparâmetros.
-]
-
-#editor_note(prefixes: (
+#done_note(prefixes: (
   (body: "Divisão dos dados"),
 ))[Registrar a separação estratificada em 80% para treino/validação (739 instâncias) e 20% para teste (185 instâncias), usando as sete faixas etárias para preservar a distribuição do alvo.]
 
-#editor_note(prefixes: (
+Antes de iniciar o processamento, a base de dados foi dividida nas partições de validação e de teste, na proporção de 80% (739 instâncias) a 20% (185 instâncias).
+A separação foi feita de forma estratificada pelas 7 faixas-etárias sob a #get_term("seed") 27.
+
+#done_note(prefixes: (
+  (body: "Reprodutibilidade"),
+))[registrar sementes utilizadas (27, 32, 59, 74 e 93), bibliotecas/ambiente relevantes e as escolhas determinísticas necessárias para repetir os experimentos.]
+
+Todos os procedimentos de validação foram realizados em cinco execuções, com as #get_term("seed", plural: true): 27, 32, 59, 74, e 93.
+Além disso, cada execução usou validação cruzada com 5 #get_term("fold", plural: true).
+O experimento foi implementado na linguagem Python 3.14, utilizando as bibliotecas `pandas` e `numpy` para manipulação de dados.
+Foi feito balanceamento pelo `imbalanced-learn`, e os algoritmos de #get_term("md") foram disponibilizados pelo `scikit-learn`.
+
+#done_note(prefixes: (
   (body: "Balanceamento"),
 ))[Explicar que SMOTE foi comparado a nenhuma aplicação de balanceamento apenas na tarefa de classificação. Descrever que a comparação foi feita por validação cruzada estratificada com cinco folds e cinco sementes fixas, totalizando 25 execuções por configuração. Especificar a posição do SMOTE no pipeline, para evitar vazamento de informação entre folds.]
 
-#editor_note(prefixes: (
-  (body: "Modelos"),
-))[Apresentar Decision Tree e Random Forest como modelos de classificação e Gradient Boost como modelo de regressão. Para cada um, explicar brevemente a justificativa de uso e os principais hiperparâmetros investigados.]
+Em seguida, avaliamos a necessidade de realizar balanceamento sintético na base.
+Aplicamos validação cruzada sobre os algoritmos de classificação, variando o método de #gls("smote") ativo e desligado.
+Os resultados foram comparados pela métrica #get_term("f1_macro"), como apresentado na @tabela:balanceamento.
+Não se constatou diferença significativa entre os testes, de forma que ambas as opções foram levadas para a fase de validação.
+
+#figure(
+  caption: [Comparação de #get_term("f1_macro") com balanceamento],
+)[
+  #table(
+    columns: (auto, auto),
+    align: (start, end),
+    table.header(strong[Modelo], strong[F1 macro]),
+    [Árvore de decisão #text(fill: red)[sem] SMOTE], [0.337 ± 0.013],
+    [Árvore de decisão #text(fill: blue)[com] SMOTE], strong[0.345 ± 0.009],
+    table.hline(stroke: 0.25pt),
+    [Floresta aleatória #text(fill: red)[sem] SMOTE], strong[0.370 ± 0.006],
+    [Floresta aleatória #text(fill: blue)[com] SMOTE], [0.369 ± 0.013],
+  )
+] <tabela:balanceamento>
+
+== Modelos e configuração experimental
 
 #editor_note(prefixes: (
   (body: "Ajuste de hiperparâmetros"),
@@ -73,17 +99,8 @@ Como benefício nos métodos em árvore, ressalta-se a capacidade de atribuir ma
   (body: "Métricas"),
 ))[Definir acurácia, acurácia balanceada e F1 macro para classificação; MAE, RMSE e R² para regressão. Justificar o uso de F1 macro e acurácia balanceada diante do desbalanceamento das faixas.]
 
-#editor_note(prefixes: (
-  (body: "Reprodutibilidade"),
-))[registrar sementes utilizadas (27, 32, 59, 74 e 93), bibliotecas/ambiente relevantes e as escolhas determinísticas necessárias para repetir os experimentos.]
-
-== Modelos e configuração experimental
-
-#todo_note()[
-  Descrever Decision Tree, Random Forest e Gradient Boost, os espaços de hiperparâmetros explorados e a configuração final escolhida para cada combinação relevante.
-]
-
 == Métricas e protocolo de avaliação
+
 #todo_note()[
   Definir as métricas utilizadas e explicar como as médias e desvios padrão foram calculados entre as cinco sementes no conjunto de teste.
 ]
