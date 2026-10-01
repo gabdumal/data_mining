@@ -28,24 +28,40 @@ df["mouth_condition"] = pd.Categorical(
 df["age_group"] = group_age(df["age"])
 
 
-# Remove features that do not have relevant amount of values different from 0
-df2_features = [
+df1_features = [
     "age",
     "age_group",
     "sex",
     "mouth_condition",
-    "amount_of_im",
-    "amount_of_p",
-    "amount_of_h",
-    "amount_of_rr",
-    "amount_of_m3i",
-    "amount_of_m3f",
-    "amount_of_te",
+    "amount_of_c",
+    "amount_of_cpum",
     "amount_of_dc",
     "amount_of_di",
-    "amount_of_c",
+    "amount_of_h",
+    "amount_of_im",
+    "amount_of_m3f",
+    "amount_of_m3i",
+    "amount_of_p",
     "amount_of_r",
-    "amount_of_cpum",
+    "amount_of_rr",
+    "amount_of_te",
+    # "amount_of_cp",
+    # "amount_of_i",
+    # "amount_of_rim",
+    # "amount_of_ri",
+    # "amount_of_tem",
+]
+
+# Remove features that do not have relevant amount of values greater than 0
+features_to_remove = [
+    "amount_of_cp",
+    "amount_of_i",
+    "amount_of_ri",
+    "amount_of_rim",
+    "amount_of_tem",
+]
+df2_features = [
+    feature for feature in df1_features if feature not in features_to_remove
 ]
 df2 = df[df2_features].copy()
 
@@ -54,20 +70,23 @@ df2 = df[df2_features].copy()
 classification_target_feature = "age_group"
 regression_target_feature = "age"
 
+# Removed "amount_of_dc" e "sex"
+
 categorical_features = [
     "mouth_condition",
 ]
 numerical_features = [
-    "amount_of_im",
-    "amount_of_p",
-    "amount_of_h",
-    "amount_of_m3i",
-    "amount_of_m3f",
-    "amount_of_te",
-    "amount_of_di",
     "amount_of_c",
-    "amount_of_r",
     "amount_of_cpum",
+    "amount_of_di",
+    "amount_of_h",
+    "amount_of_im",
+    "amount_of_m3f",
+    "amount_of_m3i",
+    "amount_of_p",
+    "amount_of_r",
+    "amount_of_rr",
+    "amount_of_te",
 ]
 input_features = categorical_features + numerical_features
 
