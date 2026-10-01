@@ -48,6 +48,12 @@
     short: "IA",
     long: "inteligência artificial",
   ),
+  (
+    key: "fdi",
+    short: "FDI",
+    long: "Federação Dentária Internacional",
+    description: [em inglês, #foreign_text[World Dental Federation].],
+  ),
 )
 
 #let glossary_entries = (

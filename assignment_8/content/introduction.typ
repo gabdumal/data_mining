@@ -45,7 +45,7 @@ As fontes de dados podem ser diretamente as imagens, ou uma transformação dess
   prefixes: ((body: "Objetivos específicos"),),
 )[Mencionar a investigação do desbalanceamento entre faixas etárias, a comparação entre Decision Tree e Random Forest para classificação, e Gradient Boost para regressão, com ajuste de hiperparâmetros e avaliação em múltiplas sementes.]
 
-Neste trabalho, utilizamos dados numéricos e categóricos manualmente extraídos por uma equipe de três dentistas.
+Neste trabalho, utilizamos dados numéricos e categóricos manualmente extraídos por uma equipe de três radiologistas.
 Então, aplicamos #gls("dt") e #gls("rf") para classificar um registro em uma de sete faixas etárias, e #gls("gb") para realizar regressão da idade numérica.
 
 Considerando o desbalanceamento de várias características, avaliamos a classificação com e sem #gls("smote").
@@ -56,4 +56,4 @@ Este, por sua vez, foi levado a teste em uma partição exclusiva da base de dad
   prefixes: ((body: "Organização do texto"),),
 )[Encerrar com uma frase indicando o conteúdo das seções seguintes.]
 
-Este trabalho está organizado da seguinte forma: a @seção:descrição apresenta a descrição do problema tratado, sua representação, e modelagem; a @seção:trabalhos_relacionados elenca trabalhos relacionados e suas contribuições; a @seção:método apresenta a abordagem do problema, a proposta de resolução, e forma de avaliação; a @seção:resultados apresenta os resultados obtidos e sua discussão; ao passo que a @seção:conclusão traz as considerações finais e limitações.
+Este trabalho está organizado da seguinte forma: a @seção:problema apresenta a descrição do problema tratado, sua representação, e modelagem; a @seção:trabalhos_relacionados elenca trabalhos relacionados e suas contribuições; a @seção:método apresenta a abordagem do problema, a proposta de resolução, e forma de avaliação; a @seção:resultados apresenta os resultados obtidos e sua discussão; ao passo que a @seção:conclusão traz as considerações finais e limitações.
