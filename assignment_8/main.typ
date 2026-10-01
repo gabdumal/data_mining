@@ -13,6 +13,15 @@
 )
 #show: ieee.with(
   ..template_configuration,
+  abstract: [
+    A predição de idade com base em características odontológicas é uma tarefa comum na perícia forense, que requer profissionais especializados.
+    Pesquisas têm experimentado métodos automatizados de fazê-lo, diminuindo a invasividade e subjetividade.
+    Este trabalho utiliza dados quantitativos e categóricos extraídos de uma base de dados de radiografias panorâmicas, em que os dentes foram manualmente rotulados.
+    Aplicamos classificação em faixas-etárias por árvore de decisão e por floresta aleatória, além de regressão por #foreign_text[gradient boost].
+    A classificação apresentou resultados pouco satisfatórios, dado que o modelo errava para as classes vizinhas, enquanto a regressão teve desempenho adequado.
+    Espera-se ter melhores resultados ao aplicar comitês, e ao incluir dados da proporção entre polpa e coroa.
+  ],
+  index-terms: ("Mineração de dados", "Classificação", "Regressão", "Odontologia", "Idade"),
 )
 #show: template
 #show: it => make-glossary(it)

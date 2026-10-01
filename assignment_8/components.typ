@@ -91,9 +91,6 @@
 
 #let template_configuration = (
   title: [Predição da idade de humanos com base em características odontológicas],
-  abstract: [
-    #todo_note[]
-  ],
   authors: (
     (
       name: "Gabriel Malosto",
@@ -103,7 +100,6 @@
       email: link("mailto:gabriel.malosto@estudante.ufjf.br"),
     ),
   ),
-  index-terms: ("Mineração de dados", "Classificação", "Regressão", "Odontologia", "Idade"),
   bibliography: bibliography("refs.bib", title: "Referências"),
   figure-supplement: [Figura],
 )

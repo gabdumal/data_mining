@@ -26,7 +26,10 @@ Realizamos todas as validações e teste em 5 #get_term("seed", plural: true) e 
 Inicialmente, aferimos a necessidade de balanceamento sintético das classes-alvo por #gls("smote").
 Os resultados da validação cruzada não destacaram melhora expressiva, o que nos motivou a utilizar ambas as versões nas próximas fases.
 
-No teste, diferentes modelos apresentaram predições melhores em diferentes classes.
+Os resultados da classificação foram pouco satisfatórios, embora seja importante compreender que os modelos tenderam a errar para as classes vizinhas.
+Ao mesmo tempo, a base não é diretamente comparável com a literatura, seja porque não contou com características de proporção entre a polpa e coroa dos dentes, ou porque as classes são diferentemente definidas.
+
+Diferentes modelos apresentaram predições melhores em diferentes classes.
 Enquanto a #gls("dt") sem balanceamento é o melhor classificador para quatro das sete classes, ele deteriora suas projeções acentuadamente nas demais.
 O #gls("gb"), apesar de ter sido o melhor classificador em apenas uma classe, apresenta uma distribuição razoável em geral, o que sustenta os achados da literatura que recomendam utilizar modelos de regressão para este problema.
 Os resultados sugerem a possível melhoria de resultados pela aplicação de comitês de modelos.
