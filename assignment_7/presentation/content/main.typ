@@ -375,7 +375,7 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
 
 #align(
   center + horizon,
-  image("/assets/images/matriz_de_confusao_de_residuos_de_gradient_boost.png"),
+  image("/assets/images/scatterplot_de_residuos_de_gradient_boost.png"),
 )
 
 

@@ -35,6 +35,11 @@
     short: foreign_text[fold],
     plural: foreign_text[folds],
   ),
+  (
+    key: "outlier",
+    short: foreign_text[outlier],
+    plural: foreign_text[outliers],
+  ),
 )
 
 #let get_term = (
