@@ -39,6 +39,7 @@ Como benefício nos métodos em árvore, ressalta-se a capacidade de atribuir ma
 
 #figure(
   caption: [Correlação de Spearman],
+  placement: auto,
 )[
   #image("../assets/correlacao_de_spearman.png")
 ] <figura:correlacao_de_spearman>
@@ -111,6 +112,7 @@ As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_gb apres
 
 #figure(
   caption: [Hiperparâmetros para a floresta aleatória],
+  placement: auto,
 )[
   #table(
     columns: 4,
@@ -128,6 +130,7 @@ As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_gb apres
 
 #figure(
   caption: [Hiperparâmetros para o #foreign_text[Gradient Boost]],
+  placement: auto,
 )[
   #table(
     columns: 3,

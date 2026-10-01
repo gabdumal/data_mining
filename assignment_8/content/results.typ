@@ -105,12 +105,14 @@ O #foreign_text[scatterplot] do #gls("gb") (@figura:scatterplot_de_gradient_boos
 
 #figure(
   caption: [Matriz de confusão do Gradient Boost],
+  placement: auto,
 )[
   #image("../assets/matriz_de_confusao_de_gradient_boost.png")
 ] <figura:matriz_de_confusao_de_gradient_boost>
 
 #figure(
   caption: [#foreign_text[Scatterplot] do Gradient Boost],
+  placement: auto,
 )[
   #image("../assets/scatterplot_de_gradient_boost.png")
 ] <figura:scatterplot_de_gradient_boost>
@@ -126,6 +128,7 @@ Ressalta-se também a menor distribuição de importâncias no #gls("gb"), que t
 
 #figure(
   caption: [Importância das características],
+  placement: auto,
 )[
   #image("../assets/importancia_das_caracteristicas.png")
 ] <figura:importancia_das_caracteristicas>
@@ -140,6 +143,7 @@ Em geral, o #gls("gb") apresentou uma distribuição aceitável.
 
 #figure(
   caption: [Gráfico de barras da quantidade de registros classificados em cada faixa-etária em relação à representação real],
+  placement: auto,
 )[
   #image("../assets/barras_de_real_vs_estimado.png")
 ] <figura:barras_de_real_vs_estimado>

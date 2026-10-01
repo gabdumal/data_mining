@@ -150,6 +150,7 @@ Nesse contexto, selecionamos métodos de #get_term("md") baseados em árvores, c
 
 #figure(
   caption: [Gráfico de barras da contagem de raízes residuais por faixa etária],
+  placement: auto,
 )[
   #image("../assets/barras_de_raizes_residuais_em_relacao_as_faixas_etarias.png")
 ] <figura:barras_de_raizes_residuais_em_relacao_as_faixas_etarias>
