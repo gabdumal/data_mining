@@ -129,3 +129,17 @@ Ressalta-se também a menor distribuição de importâncias no #gls("gb"), que t
 )[
   #image("../assets/importancia_das_caracteristicas.png")
 ] <figura:importancia_das_caracteristicas>
+
+A @figura:barras_de_real_vs_estimado demostra o desempenho de acerto dos modelos em relação à distribuição real
+Para as classes de 10--19, 30--39, 40--49 e 50--59 a #gls("dt") sem #gls("smote") acompanhou da melhor forma a representação original, o que se mostra curioso, dado que apresentou o menor #get_term("f1_macro").
+Isso ocorre devido ao seu grande erro nas demais classes, sobretudo a 60--69.
+Para a classe de 20--29 anos, o melhor modelo foi o #gls("gb"), mesmo que ele tenha classificado bem mais registros nessa classe do que realmente existem.
+Já na classe 60--69, a #gls("rf") com balanceamento demonstrou os melhores resultados às custas de desempenho pior na anterior.
+Finalmente, a classe 70+ é melhor modelada pelo #gls("rf") sem #gls("smote").
+Em geral, o #gls("gb") apresentou uma distribuição aceitável.
+
+#figure(
+  caption: [Gráfico de barras da quantidade de registros classificados em cada faixa-etária em relação à representação real],
+)[
+  #image("../assets/barras_de_real_vs_estimado.png")
+] <figura:barras_de_real_vs_estimado>
