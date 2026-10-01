@@ -8,7 +8,6 @@
   Definir com precisão a base de dados, a representação utilizada, o alvo de predição e as decisões de modelagem que transformam o problema original em um problema de mineração de dados reproduzível.
 ]
 
-
 == Base de dados
 
 #done_note(

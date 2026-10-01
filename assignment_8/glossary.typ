@@ -6,7 +6,9 @@
   (
     key: "cbct",
     short: "CBCT",
+    plural: "CBCTs",
     long: "tomografia computadorizada de feixe cônico",
+    longplural: "tomografias computadorizadas de feixe cônico",
     description: [em inglês, #foreign_text[cone beam computed tomography].],
   ),
   (
@@ -38,6 +40,12 @@
     long: foreign_text[gradient boosting],
   ),
   (
+    key: "xgb",
+    short: "XGB",
+    long: "XGBoost",
+    description: [Implementação de #foreign_text[gradient boosting].],
+  ),
+  (
     key: "smote",
     short: "SMOTE",
     long: foreign_text[Synthetic Minority Over-sampling Technique],
@@ -53,6 +61,34 @@
     short: "FDI",
     long: "Federação Dentária Internacional",
     description: [em inglês, #foreign_text[World Dental Federation].],
+  ),
+  (
+    key: "lda",
+    short: "LDA",
+    long: foreign_text[linear discriminant analysis],
+  ),
+  (
+    key: "lr",
+    short: "LR",
+    long: "regressão logística",
+    description: [em inglês, #foreign_text[logistic regression].],
+  ),
+  (
+    key: "svm",
+    short: "SVM",
+    long: "Máquina de Vetores de Suporte",
+    description: [em inglês, #foreign_text[Support Vector Machine].],
+  ),
+  (
+    key: "mlp",
+    short: "MLP",
+    long: foreign_text[multilayer perceptron],
+  ),
+  (
+    key: "nn",
+    short: "NN",
+    long: "redes neurais",
+    description: [em inglês, #foreign_text[neural networks].],
   ),
 )
 

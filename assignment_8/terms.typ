@@ -40,6 +40,10 @@
     short: foreign_text[outlier],
     plural: foreign_text[outliers],
   ),
+  (
+    key: "f1",
+    short: [F1],
+  ),
 )
 
 #let get_term = (
