@@ -48,6 +48,26 @@
     key: "f1_macro",
     short: [F1 macro],
   ),
+  (
+    key: "grid_search",
+    short: foreign_text[Grid Search],
+  ),
+  (
+    key: "accuracy",
+    short: foreign_text[accuracy],
+  ),
+  (
+    key: "precision",
+    short: foreign_text[precision],
+  ),
+  (
+    key: "recall",
+    short: foreign_text[recall],
+  ),
+  (
+    key: "balanced_accuracy",
+    short: foreign_text[balanced accuracy],
+  ),
 )
 
 #let get_term = (

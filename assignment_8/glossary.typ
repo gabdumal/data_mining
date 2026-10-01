@@ -96,6 +96,23 @@
     long: "intervalo interquartil",
     description: [em inglês, #foreign_text[interquartile range].],
   ),
+  (
+    key: "mae",
+    short: "MAE",
+    long: "erro médio absoluto",
+    description: [em inglês, #foreign_text[mean absolute error].],
+  ),
+  (
+    key: "rmse",
+    short: "RMSE",
+    long: "raiz do erro quadrático médio",
+    description: [em inglês, #foreign_text[root mean square error].],
+  ),
+  (
+    key: "r2",
+    short: [R#upper[2]],
+    long: "coeficiente de determinação",
+  ),
 )
 
 #let glossary_entries = (

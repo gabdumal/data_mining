@@ -75,8 +75,7 @@ Não se constatou diferença significativa entre os testes, de forma que ambas a
 )[
   #table(
     columns: (auto, auto),
-    align: (start, end),
-    table.header(strong[Modelo], strong[F1 macro]),
+    table.header(strong[Modelo], strong[#get_term("f1_macro")]),
     [Árvore de decisão #text(fill: red)[sem] SMOTE], [0.337 ± 0.013],
     [Árvore de decisão #text(fill: blue)[com] SMOTE], strong[0.345 ± 0.009],
     table.hline(stroke: 0.25pt),
@@ -85,22 +84,69 @@ Não se constatou diferença significativa entre os testes, de forma que ambas a
   )
 ] <tabela:balanceamento>
 
-== Modelos e configuração experimental
+== Modelos e protocolo experimental
 
-#editor_note(prefixes: (
+#done_note(prefixes: (
   (body: "Ajuste de hiperparâmetros"),
-))[Documentar o GridSearch com validação cruzada estratificada em cinco folds por cinco sementes. Informar que F1 macro foi a métrica de seleção para classificação e MAE para regressão. Apresentar somente os espaços de busca e a configuração final no corpo do texto; deixar resultados completos do grid para material suplementar/apêndice, caso necessário.]
+))[Documentar o GridSearch. Informar que F1 macro foi a métrica de seleção para classificação e MAE para regressão. Apresentar os espaços de busca e a configuração final.]
 
-#editor_note(prefixes: (
-  (body: "Avaliação final"),
-))[Explicar que os modelos selecionados são avaliados no conjunto de teste separado, com cinco sementes fixas. Registrar que as tabelas apresentam média ± desvio padrão entre sementes.]
+Para ajustar os hiperparâmetros, utilizamos validação cruzada com o método de #get_term("grid_search").
+Para os algoritmos de classificação, os resultados foram comparados por #get_term("f1_macro"), enquanto, para os de regressão, usamos #gls("mae").
+As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_xgb apresentam a grade de hiperparâmetros testados e aqueles selecionados para #gls("dt"), #gls("rf"), e #gls("xgb"), respectivamente.
 
-#editor_note(prefixes: (
+#figure(
+  caption: [Hiperparâmetros para a árvore de decisão],
+)[
+  #table(
+    columns: 4,
+    table.header(
+      strong[Parâmetro], strong[Valores], strong[#text(fill: red)[sem] B.], strong[#text(fill: blue)[com] B.]
+    ),
+    [Critério de seleção], [gini, entropy], [entropy], [entropy],
+    [Profundidade máxima], [7, 10, #sym.infinity], [#sym.infinity], [#sym.infinity],
+    [Min. amostras p. separação], [2, 5, 10], [10], [2],
+    [Min. amostras nas folhas], [1, 2, 5], [2], [5],
+  )
+] <tabela:validação_dt>
+
+#figure(
+  caption: [Hiperparâmetros para a floresta aleatória],
+)[
+  #table(
+    columns: 4,
+    table.header(
+      strong[Parâmetro], strong[Valores], strong[#text(fill: red)[sem] B.], strong[#text(fill: blue)[com] B.]
+    ),
+    [Critério de seleção], [gini, entropy], [gini], [entropy],
+    [Limite de características], [sqrt, log2], [log2], [log2],
+    [Profundidade máxima], [3, 5, 7], [7], [7],
+    [Min. amostras p. separação], [2, 5, 10], [2], [2],
+    [Min. amostras nas folhas], [1, 2, 3], [1], [1],
+    [Quant. de estimadores], [100, 200, 300], [300], [300],
+  )
+] <tabela:validação_rf>
+
+#figure(
+  caption: [Hiperparâmetros para o XGBoost],
+)[
+  #table(
+    columns: 3,
+    table.header(strong[Parâmetro], strong[Valores], strong[Selec.]),
+    [Função de perda], [absolute_error,\ squared_error, huber], [huber],
+    [Taxa de aprendizado], [0.01, 0.05, 0.1], [0.05],
+    [Profundidade máxima], [2, 3, 5], [2],
+    [Min. amostras nas folhas], [1, 3, 5, 10], [1],
+    [Quant. de estimadores], [100, 200, 300], [200],
+  )
+] <tabela:validação_xgb>
+
+#done_note(prefixes: (
   (body: "Métricas"),
-))[Definir acurácia, acurácia balanceada e F1 macro para classificação; MAE, RMSE e R² para regressão. Justificar o uso de F1 macro e acurácia balanceada diante do desbalanceamento das faixas.]
+))[Listar métricas. Justificar o uso de F1 macro e acurácia balanceada diante do desbalanceamento das faixas.]
 
-== Métricas e protocolo de avaliação
+Tendo treinado cada modelo com os hiperparâmetros selecionados, passamos à fase de teste com a partição previamente separada.
+Foram calculadas as seguintes métricas para os modelos de classificação: #get_term("accuracy"), #get_term("precision"), #get_term("recall"), #get_term("balanced_accuracy") e #get_term("f1_macro").
+Os últimos dois são particularmente relevantes no cenário de desbalanço da variável-alvo.
+Já para os modelos de regressão, usamos: #gls("mae"), #gls("rmse"), e #gls("r2").
 
-#todo_note()[
-  Definir as métricas utilizadas e explicar como as médias e desvios padrão foram calculados entre as cinco sementes no conjunto de teste.
-]
+Da mesma forma que a validação, todos os testes foram realizados em 5 #get_term("seed", plural: true) e 5 #get_term("fold", plural: true), tendo sido calculada a média e o desvio padrão.

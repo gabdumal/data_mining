@@ -24,7 +24,7 @@ Contudo, os autores não divulgaram a base de dados montada, o que impede a repr
 Ressalta-se que, entre as características mais capazes de predizer a idade em adultos, está a proporção entre polpa e coroa, como descrito na base de dados pública montada por #cite(<pereira:2025:incisor_pulp_chamber_dataset>, form: "prose").
 Neste estudo, os autores registraram imagens dos dentes 11 e 21 em visão coronal e sagital capturadas por #gls("cbct").
 Os registros foram feitos de 452 mulheres e 210 homens em uma população da Zona da Mata Mineira.
-Os autores desenvolvem a tarefa na forma de regressão, atingindo MAE de 5,89 anos.
+Os autores desenvolvem a tarefa na forma de regressão, atingindo #gls("mae") de 5,89 anos.
 Ressalta-se que, embora as tomografias apresentem maior qualidade de distinção da imagem, elas também exigem um maquinário mais complexo que as radiografias.
 
 Em outra abordagem, #cite(<oliveira:2026:radiografias_odontologicas_grupos_etarios>, form: "prose") montaram uma base de dados pública de radiografias panorâmicas e aplicaram técnicas de #gls("nn").
@@ -34,7 +34,7 @@ Entretanto, a divisão dos grupos é pouco relevante para usos de identificaçã
 
 Finalmente, #cite(<lee:2026:machine_learning_adult_age_estimation>, form: "prose") montaram um banco de dados próprio com radiografias de 1212 homens e 1203 mulheres entre 20 e 89 anos.
 Os autores extraíram características de cada dente, atribuindo rótulos como: dente saudável, ausente, com defeito, restauração, implante, entre outros.
-Elas foram fornecidas juntamente com as imagens, obtendo resultados de MAE de 8,55 no #gls("xgb") e 9.55 no #gls("lr").
+Elas foram fornecidas juntamente com as imagens, obtendo resultados de #gls("mae") de 8,55 no #gls("xgb") e 9.55 no #gls("lr").
 Contudo, a base de dados também não foi disponibilizada.
 
 #done_note(prefixes: (
