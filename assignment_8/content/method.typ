@@ -92,7 +92,7 @@ Não se constatou diferença significativa entre os testes, de forma que ambas a
 
 Para ajustar os hiperparâmetros, utilizamos validação cruzada com o método de #get_term("grid_search").
 Para os algoritmos de classificação, os resultados foram comparados por #get_term("f1_macro"), enquanto, para os de regressão, usamos #gls("mae").
-As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_xgb apresentam a grade de hiperparâmetros testados e aqueles selecionados para #gls("dt"), #gls("rf"), e #gls("xgb"), respectivamente.
+As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_gb apresentam a grade de hiperparâmetros testados e aqueles selecionados para #gls("dt"), #gls("rf"), e #gls("gb"), respectivamente.
 
 #figure(
   caption: [Hiperparâmetros para a árvore de decisão],
@@ -127,7 +127,7 @@ As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_xgb apre
 ] <tabela:validação_rf>
 
 #figure(
-  caption: [Hiperparâmetros para o XGBoost],
+  caption: [Hiperparâmetros para o #foreign_text[Gradient Boost]],
 )[
   #table(
     columns: 3,
@@ -138,7 +138,7 @@ As @tabela:validação_dt, @tabela:validação_rf e @tabela:validação_xgb apre
     [Min. amostras nas folhas], [1, 3, 5, 10], [1],
     [Quant. de estimadores], [100, 200, 300], [200],
   )
-] <tabela:validação_xgb>
+] <tabela:validação_gb>
 
 #done_note(prefixes: (
   (body: "Métricas"),
