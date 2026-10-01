@@ -76,11 +76,11 @@ Não se constatou diferença significativa entre os testes, de forma que ambas a
   #table(
     columns: (auto, auto),
     table.header(strong[Modelo], strong[#get_term("f1_macro")]),
-    [Árvore de decisão #text(fill: red)[sem] SMOTE], [0.337 ± 0.013],
-    [Árvore de decisão #text(fill: blue)[com] SMOTE], strong[0.345 ± 0.009],
+    [Árvore de decisão #text(fill: red)[sem] SMOTE], [0,337 ± 0,013],
+    [Árvore de decisão #text(fill: blue)[com] SMOTE], strong[0,345 ± 0,009],
     table.hline(stroke: 0.25pt),
-    [Floresta aleatória #text(fill: red)[sem] SMOTE], strong[0.370 ± 0.006],
-    [Floresta aleatória #text(fill: blue)[com] SMOTE], [0.369 ± 0.013],
+    [Floresta aleatória #text(fill: red)[sem] SMOTE], strong[0,370 ± 0,006],
+    [Floresta aleatória #text(fill: blue)[com] SMOTE], [0,369 ± 0,013],
   )
 ] <tabela:balanceamento>
 
