@@ -1,7 +1,12 @@
-#import "packages.typ": *
+#import "glossary.typ": glossaries_entries
+#import "components.typ": *
 
-
-#show: it => note.template(
+#register-glossary(glossaries_entries)
+#show: it => quati-abnt.link.template(
+  it,
+  color_of_links: blue.darken(60%),
+)
+#show: it => quati-abnt.note.template(
   it,
   should_display_notes: true,
 )
@@ -9,59 +14,22 @@
   ..template_configuration,
 )
 #show: template
+#show: it => make-glossary(it)
 
-= Introdução
-#editor_note(
-  prefixes: ((body: "Função da seção"),),
-)[Apresentar o contexto, justificar o problema e conduzir o leitor até o objetivo do trabalho, sem antecipar toda a metodologia ou os resultados.]
-
-#editor_note(
-  prefixes: ((body: "Contexto"),),
-)[Introduzir a estimação da idade humana a partir de características dentárias e suas aplicações, especialmente em investigação forense, identificação de pessoas e contextos odontológicos. Explicar por que a estimativa em adultos é particularmente desafiadora em comparação com indivíduos mais jovens.]
-
-#editor_note(
-  prefixes: ((body: "Motivação"),),
-)[Destacar a necessidade de métodos que reduzam a dependência de aferência manual e de procedimentos invasivos, explorando informações já disponíveis em radiografias panorâmicas.]
-
-A estimação da idade em humanos com base na condição dos dentes é comum nas áreas de investigação forense, de identificação de pessoas, e de planejamento para tratamento odontológico.
-Características marcantes de desenvolvimento são mais pronunciadas em crianças e jovens do que em adultos, o que dificulta a exatidão da estimativa.
-
-Técnicas comumente usadas para aferir a idade incluem a análise da qualidade e da quantidade dos dentes.
-Perda de dentes e quantidade de restaurações tendem a aumentar conforme o indivíduo envelhece, assim como o desgaste natural.
-Outras características, como a presença de dentes de leite e o desenvolvimento de molares, são mais marcadas em jovens.
-
-Essas análises podem ser feitas diretamente com o paciente em um consultório odontológico ou posteriormente, por meio de capturas de imagens radiográficas ou tomográficas.
-Esse segundo método tende a ser preferível, por ser menos invasivo e por separar a responsabilidade do técnico de imagem e do dentista.
-Isso se acentua no caso de análises forenses em ossadas, em que há a necessidade da preservação do material e da cadeia de custódia.
-
-#editor_note(
-  prefixes: ((body: "Problema central"),),
-)[Formular o trabalho como um problema de predição da idade a partir de características extraídas das segmentações dentárias de radiografias panorâmicas.]
-
-#editor_note(
-  prefixes: ((body: "Objetivo geral"),),
-)[Empregar métodos de mineração de dados para estimar a idade, considerando duas formulações complementares: classificação em sete faixas etárias e regressão da idade numérica.]
-
-#editor_note(
-  prefixes: ((body: "Objetivos específicos"),),
-)[Mencionar a transformação das segmentações em atributos tabulares, a exploração das características, a investigação do desbalanceamento entre faixas etárias, a comparação entre Decision Tree e Random Forest para classificação, e Gradient Boost para regressão, com ajuste de hiperparâmetros e avaliação em múltiplas sementes.]
-
-#editor_note(
-  prefixes: ((body: "Contribuição/escopo"),),
-)[Deixar claro que o foco está na representação tabular derivada das anotações da base, e não na construção de um modelo diretamente sobre os pixels das radiografias.]
-
-#editor_note(
-  prefixes: ((body: "Organização do texto"),),
-)[Encerrar com uma frase indicando o conteúdo das seções seguintes.]
-
-
-== Objetivo e escopo
-#todo_note()[
-  Apresentar de forma explícita o objetivo geral, as duas tarefas de aprendizado (classificação e regressão) e a restrição ao conjunto de características estruturadas obtidas da base.
+#note_from_gabriel()[
+  Olá, professores!
+  Caso desejem deixar comentários em notas pelo texto, vocês podem utilizar os dois comandos abaixo.
+  A maioria das notas de afazeres elencadas abaixo foram criadas por IA.
+  O texto das seções de fato foi escrito por mim.
 ]
 
+#note_from_heder()[Texto]
 
-= Descrição do problema
+#note_from_luciana()[Texto]
+
+#include "content/introduction.typ"
+
+= Descrição do problema <seção:descrição>
 #editor_note(
   prefixes: ((body: "Função da seção"),),
 )[
@@ -112,7 +80,7 @@ Isso se acentua no caso de análises forenses em ossadas, em que há a necessida
 ]
 
 
-= Trabalhos relacionados
+= Trabalhos relacionados <seção:trabalhos_relacionados>
 
 #editor_note(prefixes: (
   (body: "Alvos"),
@@ -158,7 +126,7 @@ Isso se acentua no caso de análises forenses em ossadas, em que há a necessida
 ]
 
 
-= Metodologia
+= Materiais e método <seção:método>
 #editor_note(prefixes: (
   body: "Função da seção",
 ))[Permitir que outro pesquisador reproduza o experimento, descrevendo preparação dos dados, análise exploratória, divisão treino/teste, balanceamento, modelos, ajuste de hiperparâmetros, métricas e protocolo de repetição.]
@@ -229,7 +197,7 @@ Isso se acentua no caso de análises forenses em ossadas, em que há a necessida
 ]
 
 
-= Resultados
+= Resultados <seção:resultados>
 #editor_note(prefixes: (
   body: "Função da seção",
 ))[apresentar evidências e interpretá-las em relação às perguntas do trabalho e à literatura, separando claramente resultados da EDA, resultados de validação e desempenho no teste.]
@@ -329,7 +297,7 @@ Isso se acentua no caso de análises forenses em ossadas, em que há a necessida
 ]
 
 
-= Conclusões
+= Conclusões <seção:conclusão>
 #editor_note(prefixes: (
   body: "Função da seção",
 ))[responder diretamente ao objetivo do trabalho e sintetizar o que os experimentos demonstram, sem introduzir novos resultados.]
@@ -368,3 +336,10 @@ Isso se acentua no caso de análises forenses em ossadas, em que há a necessida
 #todo_note()[
   Propor extensões diretamente motivadas pelas limitações encontradas, sem transformar a conclusão em uma lista extensa de possibilidades não testadas.
 ]
+
+#heading(numbering: none)[Glossário]
+#print-glossary(
+  disable-back-references: true,
+  // invisible: true,
+  glossaries_entries,
+)
