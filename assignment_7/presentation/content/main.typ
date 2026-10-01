@@ -127,8 +127,8 @@ As entradas são compostas por: imagem, sexo, idade, #stress[segmentações].
     - Faixa: 40-49
     - Sexo: Masculino
     - Boca: Dentes\ presentes (De)
-    - #text(fill: color.rgb("999900"))[Saudável (H)]: 14
-    - #text(fill: color.rgb("009999"))[Restauração (R)]: 10
+    - #text(fill: color.rgb("#999900"))[Saudável (H)]: 14
+    - #text(fill: color.rgb("#009999"))[Restauração (R)]: 10
     - #text(fill: color.rgb("#009900"))[Tratamento\ endodôntico (Te)]: 3
     - #text(fill: color.rgb("#EE6600"))[Cáries (C)]: 1
   ],

@@ -480,14 +480,15 @@ FEATURE_IMPORTANCE_ORDER: tuple[str, ...] = (
     "amount_of_h",
     "amount_of_r",
     "amount_of_te",
-    "amount_of_m3f",
-    "amount_of_m3i",
+    "amount_of_c",
     "amount_of_cpum",
+    "amount_of_di",
+    "amount_of_m3i",
+    "amount_of_m3f",
+    "amount_of_rr",
+    "amount_of_p",
     "mouth_condition",
     "amount_of_im",
-    "amount_of_p",
-    "amount_of_di",
-    "amount_of_c",
 )
 
 
